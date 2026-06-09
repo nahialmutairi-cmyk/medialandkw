@@ -1,0 +1,6 @@
+{
+  "name": "Media Land Website",
+  "description": "A modern, high-impact Arabic RTL website for Media Land (ميديا لاند), a Kuwaiti digital marketing agency.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
