@@ -18,7 +18,7 @@ export function BlogDetail() {
   }
 
   // Pre-filled WhatsApp message for consultation based on the blog topic
-  const prefilledWhatsappUrl = `https://wa.me/96565118963?text=${encodeURIComponent(
+  const prefilledWhatsappUrl = `${siteConfig.whatsappUrl}?text=${encodeURIComponent(
     `مرحباً ميديا لاند، قرأت مقالكم المميز: "${post.title}" وأرغب في الحصول على استشارة تسويقية لمشروعي الخاص.`
   )}`;
 

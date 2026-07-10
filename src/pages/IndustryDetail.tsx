@@ -17,7 +17,7 @@ export function IndustryDetail() {
     );
   }
 
-  const prefilledWhatsappUrl = `https://wa.me/96565118963?text=${encodeURIComponent(
+  const prefilledWhatsappUrl = `${siteConfig.whatsappUrl}?text=${encodeURIComponent(
     `مرحباً ميديا لاند، نملك مشروعاً في قطاع: ${industry.title} ونريد الحصول على استشارة وخطة تسويق وحملات إعلانية مخصصة.`
   )}`;
 

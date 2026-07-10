@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { ScrollReveal } from './ScrollReveal';
 import { Send, PhoneCall, Instagram, CheckCircle2, MessageSquare, Briefcase } from 'lucide-react';
+import { siteConfig } from '../siteConfig';
 
 export function ContactCTA() {
   const [formData, setFormData] = useState({
@@ -45,7 +46,7 @@ export function ContactCTA() {
         {/* Dynamic Interactive Cards with contact handles */}
         <div className="space-y-4 pt-4">
           <a
-            href="https://wa.me/96565118963"
+            href={siteConfig.whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-4 bg-[#12141E] p-4 rounded-xl border border-white/5 hover:border-[#22C55E]/20 transition-all hover:scale-102 group"
@@ -56,13 +57,13 @@ export function ContactCTA() {
             <div>
               <span className="text-xs text-gray-400 block font-mono">WHATSAPP / INSTANT CHAT</span>
               <span className="text-white font-bold font-display tracking-wide group-hover:text-[#22C55E] transition-colors" dir="ltr">
-                +965 6511 8963
+                {siteConfig.whatsapp}
               </span>
             </div>
           </a>
 
           <a
-            href="https://instagram.com/medialandkw"
+            href={siteConfig.instagram}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-4 bg-[#12141E] p-4 rounded-xl border border-white/5 hover:border-[#FF3E55]/20 transition-all hover:scale-102 group"
@@ -193,7 +194,7 @@ export function ContactCTA() {
 
               <div className="flex flex-col sm:flex-row gap-4 w-full justify-center pt-4">
                 <a
-                  href={`https://wa.me/96565118963?text=مرحباً%20ميديا%20لاند،%20لقد%20أرسلت%20طلباً%20للتواصل%20باسمي:%20${encodeURIComponent(formData.name)}`}
+                  href={`${siteConfig.whatsappUrl}?text=مرحباً%20ميديا%20لاند،%20لقد%20أرسلت%20طلباً%20للتواصل%20باسمي:%20${encodeURIComponent(formData.name)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-[#22C55E] hover:bg-[#22C55E]/90 text-white font-bold font-display px-6 py-3.5 rounded-xl shadow-lg transition-transform hover:scale-103 text-sm flex items-center justify-center gap-2 cursor-pointer"

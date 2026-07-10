@@ -10,7 +10,7 @@ export function Blog() {
       {/* Title block */}
       <div className="text-center space-y-4 max-w-3xl mx-auto">
         <span className="text-xs uppercase text-[#0055FF] tracking-widest block font-bold">المدونة المعرفية وأسرار السوق</span>
-        <ClipWipeTitle className="text-3xl sm:text-5xl font-black text-white">
+        <ClipWipeTitle as="h1" className="text-3xl sm:text-5xl font-black text-white">
           مدونة <span className="text-[#FF3E55]">ميديا لاند الإعلانية</span>
         </ClipWipeTitle>
         <p className="text-[#F0F4FF]/70 text-xs sm:text-sm leading-relaxed">

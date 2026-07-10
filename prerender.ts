@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
-import { StaticRouter } from 'react-router';
+import { MemoryRouter } from 'react-router-dom';
 import { siteConfig } from './src/siteConfig';
 import { getSeoForPathname, generateJsonLd } from './src/seoData';
 import { AppContent } from './src/App';
@@ -50,6 +50,25 @@ if (!fs.existsSync(BASE_TEMPLATE_PATH)) {
 
 const baseTemplate = fs.readFileSync(BASE_TEMPLATE_PATH, 'utf-8');
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function stripSeoHeadTags(html: string): string {
+  return html
+    .replace(/<title>[\s\S]*?<\/title>\s*/i, '')
+    .replace(/\s*<meta\s+name=["']description["'][^>]*>\s*/gi, '')
+    .replace(/\s*<meta\s+name=["']robots["'][^>]*>\s*/gi, '')
+    .replace(/\s*<link\s+rel=["']canonical["'][^>]*>\s*/gi, '')
+    .replace(/\s*<meta\s+property=["']og:[^"']+["'][^>]*>\s*/gi, '')
+    .replace(/\s*<meta\s+name=["']twitter:[^"']+["'][^>]*>\s*/gi, '')
+    .replace(/\s*<script\s+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, '');
+}
+
 // Gather all routes dynamically
 const staticRoutes = [
   '/',
@@ -91,7 +110,7 @@ allRoutes.forEach(route => {
   let appHtml = '';
   try {
     appHtml = renderToString(
-      React.createElement(StaticRouter, { location: route },
+      React.createElement(MemoryRouter, { initialEntries: [route] },
         React.createElement(AppContent)
       )
     );
@@ -108,30 +127,27 @@ allRoutes.forEach(route => {
 
   // Generate complete Meta block
   const metaBlock = `
-    <title>${seo.title}</title>
-    <meta name="description" content="${seo.description}" />
+    <title>${escapeHtml(seo.title)}</title>
+    <meta name="description" content="${escapeHtml(seo.description)}" />
     ${robotsDirective}
     <link rel="canonical" href="${seo.canonical}" />
-    <meta property="og:title" content="${seo.title}" />
-    <meta property="og:description" content="${seo.description}" />
+    <meta property="og:title" content="${escapeHtml(seo.title)}" />
+    <meta property="og:description" content="${escapeHtml(seo.description)}" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="${seo.canonical}" />
     <meta property="og:image" content="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="${seo.title}" />
-    <meta name="twitter:description" content="${seo.description}" />
+    <meta name="twitter:url" content="${seo.canonical}" />
+    <meta name="twitter:title" content="${escapeHtml(seo.title)}" />
+    <meta name="twitter:description" content="${escapeHtml(seo.description)}" />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80" />
     <script type="application/ld+json" id="json-ld-seo-schema">${JSON.stringify(jsonLd)}</script>
   `;
 
   // Inject metaBlock into base template head
-  let content = baseTemplate;
+  let content = stripSeoHeadTags(baseTemplate);
   
-  // Replace existing title or inject into head
-  if (content.includes('<title>')) {
-    content = content.replace(/<title>[\s\S]*?<\/title>/, metaBlock);
-  } else {
-    content = content.replace('</head>', `${metaBlock}\n</head>`);
-  }
+  content = content.replace('</head>', `${metaBlock}\n</head>`);
 
   // Inject rendered React HTML block into <div id="root"></div>
   content = content.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`);
@@ -203,5 +219,19 @@ Sitemap: ${siteConfig.siteUrl}/sitemap.xml
 `;
 fs.writeFileSync(path.join(DIST_DIR, 'robots.txt'), robotsTxt, 'utf-8');
 console.log('robots.txt generated successfully!');
+
+// Generate Netlify redirects so prerendered HTML wins before the SPA fallback.
+console.log('Generating _redirects...');
+const redirectLines = [
+  '/robots.txt     /robots.txt     200',
+  '/sitemap.xml    /sitemap.xml    200',
+  ...allRoutes
+    .filter(route => route !== '/')
+    .map(route => `${route}    ${route}/index.html    200`),
+  '/u/*    /index.html    200',
+  '/*    /index.html    200'
+];
+fs.writeFileSync(path.join(DIST_DIR, '_redirects'), `${redirectLines.join('\n')}\n`, 'utf-8');
+console.log('_redirects generated successfully!');
 
 console.log('Pre-rendering completed successfully!');

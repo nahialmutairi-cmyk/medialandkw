@@ -50,7 +50,7 @@ export function Contact() {
       {/* Title */}
       <div className="text-center space-y-4 max-w-3xl mx-auto">
         <span className="text-xs uppercase text-[#0055FF] tracking-widest block font-bold">تواصل معنا الآن</span>
-        <ClipWipeTitle className="text-3xl sm:text-5xl font-black text-white">
+        <ClipWipeTitle as="h1" className="text-3xl sm:text-5xl font-black text-white">
           احصل على استشارتك <span className="text-[#FF3E55]">الإعلانية المجانية</span>
         </ClipWipeTitle>
         <p className="text-[#F0F4FF]/70 text-xs sm:text-sm leading-relaxed">

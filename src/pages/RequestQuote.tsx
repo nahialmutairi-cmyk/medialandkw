@@ -42,7 +42,7 @@ export function RequestQuote() {
       {/* Title */}
       <div className="text-center space-y-4 max-w-2xl mx-auto">
         <span className="text-xs uppercase text-[#FF3E55] tracking-widest block font-bold">نموذج B2B المعتمد</span>
-        <ClipWipeTitle className="text-3xl sm:text-4xl font-black text-white">
+        <ClipWipeTitle as="h1" className="text-3xl sm:text-4xl font-black text-white">
           اطلب عرض سعر <span className="text-[#0055FF]">تفصيلي لمشروعك</span>
         </ClipWipeTitle>
         <p className="text-[#F0F4FF]/70 text-xs sm:text-sm leading-relaxed">

@@ -10,7 +10,7 @@ export function Industries() {
       {/* Title */}
       <div className="text-center space-y-4 max-w-3xl mx-auto">
         <span className="text-xs uppercase text-[#FF3E55] tracking-widest block font-bold">القطاعات والمجالات التجارية المستهدفة</span>
-        <ClipWipeTitle className="text-3xl sm:text-5xl font-black text-white">
+        <ClipWipeTitle as="h1" className="text-3xl sm:text-5xl font-black text-white">
           استراتيجيات تسويقية مخصصة <span className="text-[#0055FF]">لكل قطاع</span>
         </ClipWipeTitle>
         <p className="text-[#F0F4FF]/70 text-xs sm:text-sm leading-relaxed">

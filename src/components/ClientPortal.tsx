@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { MessageSquare, Phone, Globe, ShieldCheck, Sparkles, UserCheck, ArrowRight } from 'lucide-react';
+import { siteConfig } from '../siteConfig';
 
 export function ClientPortal() {
   const { clientId } = useParams<{ clientId: string }>();
@@ -38,7 +39,7 @@ export function ClientPortal() {
 
         <div className="pt-6 flex flex-col sm:flex-row gap-3">
           <a
-            href="https://wa.me/96565118963"
+            href={siteConfig.whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1 text-center py-3.5 bg-[#22C55E] hover:bg-[#1eb152] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition-transform hover:scale-102"

@@ -56,6 +56,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
       }
       ogDesc.setAttribute('content', seo.description);
 
+      let ogUrl = document.querySelector('meta[property="og:url"]');
+      if (!ogUrl) {
+        ogUrl = document.createElement('meta');
+        ogUrl.setAttribute('property', 'og:url');
+        document.head.appendChild(ogUrl);
+      }
+      ogUrl.setAttribute('content', seo.canonical);
+
+      let twitterUrl = document.querySelector('meta[name="twitter:url"]');
+      if (!twitterUrl) {
+        twitterUrl = document.createElement('meta');
+        twitterUrl.setAttribute('name', 'twitter:url');
+        document.head.appendChild(twitterUrl);
+      }
+      twitterUrl.setAttribute('content', seo.canonical);
+
       // Inject / Update JSON-LD Script tag
       let jsonLdScript = document.getElementById('json-ld-seo-schema');
       if (!jsonLdScript) {

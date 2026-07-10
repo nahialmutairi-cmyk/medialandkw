@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { siteConfig } from '../siteConfig';
 
 export function WhatsAppFloat() {
   const [isHovered, setIsHovered] = useState(false);
@@ -40,7 +41,7 @@ export function WhatsAppFloat() {
 
       {/* Pulsing expand button */}
       <a
-        href="https://wa.me/96565118963"
+        href={siteConfig.whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="whatsapp-pulse bg-[#22C55E] text-white flex items-center justify-center rounded-full h-14 transition-all duration-500 overflow-hidden shadow-2xl select-none cursor-pointer"
