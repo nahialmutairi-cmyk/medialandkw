@@ -174,7 +174,7 @@ export function Contact() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="مثال: +965 6511 8963"
+                  placeholder={`مثال: ${siteConfig.phone}`}
                     className="w-full bg-[#0A0A0F] border border-white/10 rounded-xl py-3 px-4 text-xs text-white focus:outline-none focus:border-[#0055FF] transition-colors text-right"
                     dir="ltr"
                   />
