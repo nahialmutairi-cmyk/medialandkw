@@ -19,7 +19,7 @@ export function Home() {
           <div className="inline-flex items-center gap-2 bg-[#12141E] border border-[#0055FF]/20 py-2 px-4 rounded-full shadow-lg">
             <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E] animate-pulse" />
             <span className="text-[10px] font-mono text-gray-300 uppercase tracking-widest font-bold">
-              الوكالة الرقمية الأولى بدولة الكويت 🇰🇼 LOCAL AUTHORITY
+              وكالة دعاية وإعلان متخصصة بدولة الكويت 🇰🇼 LOCAL AUTHORITY
             </span>
           </div>
 

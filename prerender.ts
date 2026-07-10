@@ -1,7 +1,43 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { StaticRouter } from 'react-router';
 import { siteConfig } from './src/siteConfig';
 import { getSeoForPathname, generateJsonLd } from './src/seoData';
+import { AppContent } from './src/App';
+
+// Mock browser environment for Server-Side Rendering
+const globalAny: any = global;
+globalAny.window = {
+  scrollTo: () => {},
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  location: { pathname: '', search: '', hash: '', href: '' },
+};
+globalAny.document = {
+  createElement: () => ({ setAttribute: () => {}, appendChild: () => {} }),
+  head: { appendChild: () => {} },
+  getElementById: () => null,
+  body: { appendChild: () => {} },
+};
+
+try {
+  Object.defineProperty(global, 'navigator', {
+    value: { userAgent: 'node' },
+    writable: true,
+    configurable: true,
+  });
+} catch (e) {
+  // Ignore fallback
+}
+
+class IntersectionObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+globalAny.IntersectionObserver = IntersectionObserverMock;
 
 // Constants
 const DIST_DIR = path.join(process.cwd(), 'dist');
@@ -46,222 +82,35 @@ const allRoutes = [
 
 console.log(`Starting pre-rendering for ${allRoutes.length} routes...`);
 
-// Helper to generate a clean semantic HTML body for crawlers
-function generateSemanticContent(route: string): string {
-  const seo = getSeoForPathname(route);
-  
-  let html = `<div class="seo-crawler-content" style="padding: 20px; max-width: 800px; margin: 0 auto; font-family: sans-serif; line-height: 1.6; direction: rtl; text-align: right;">`;
-  
-  // Breadcrumbs
-  html += `<nav class="breadcrumbs" aria-label="Breadcrumb" style="margin-bottom: 20px; font-size: 0.9em; color: #666;">`;
-  html += seo.breadcrumbs.map(bc => `<a href="${bc.url}">${bc.name}</a>`).join(' &gt; ');
-  html += `</nav>`;
-
-  // Title & H1
-  html += `<h1 style="font-size: 2.5em; margin-bottom: 10px; color: #111;">${seo.h1}</h1>`;
-  html += `<p class="lead" style="font-size: 1.2em; color: #333; margin-bottom: 30px; font-weight: bold;">${seo.description}</p>`;
-
-  // Content generation based on route type
-  if (route === '/') {
-    html += `<h2>من نحن - ميديا لاند الكويت</h2>`;
-    html += `<p>مرحباً بكم في ميديا لاند، الشركة الرائدة في خدمات الدعاية والإعلان والتسويق الرقمي في دولة الكويت. نحن نقدم باقات تسويقية مبتكرة، إدارة حسابات احترافية، إنتاج فيديو وتصوير سينمائي، وتطوير مواقع ومتاجر رقمية متكاملة لضمان ريادتك ومضاعفة مبيعاتك في السوق الكويتي.</p>`;
-    
-    html += `<h3>أبرز الخدمات التي نقدمها:</h3><ul>`;
-    siteConfig.services.slice(0, 6).forEach(s => {
-      html += `<li><strong>${s.title}</strong>: ${s.subtitle}</li>`;
-    });
-    html += `</ul>`;
-  } 
-  else if (route === '/about') {
-    html += `<h2>قصة ميديا لاند للدعاية والإعلان والتسويق الرقمي</h2>`;
-    html += `<p>انطلقت ميديا لاند بدولة الكويت بهدف سد الفجوة الكبيرة بين التصاميم العادية والحملات الإعلانية الصارمة ذات العائد الربحي الفعلي. نحن لا نكتفي بإنشاء تصاميم، بل نضع استراتيجية متكاملة تبدأ من دراسة المنافسين وتصوير الأصول الخاصة بمشروعك تصويراً سينمائياً احترافياً.</p>`;
-  } 
-  else if (route === '/services') {
-    html += `<h2>خدماتنا المتكاملة الـ 16 في الكويت</h2>`;
-    html += `<div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">`;
-    siteConfig.services.forEach(s => {
-      html += `<div style="border: 1px solid #eee; padding: 15px; border-radius: 8px;">`;
-      html += `<h3 style="margin-top: 0;"><a href="/services/${s.id}">${s.title}</a></h3>`;
-      html += `<p>${s.subtitle}</p>`;
-      html += `</div>`;
-    });
-    html += `</div>`;
-  } 
-  else if (route === '/industries') {
-    html += `<h2>القطاعات والشركات التي نخدمها في الكويت</h2>`;
-    html += `<div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">`;
-    siteConfig.industries.forEach(i => {
-      html += `<div style="border: 1px solid #eee; padding: 15px; border-radius: 8px;">`;
-      html += `<h3 style="margin-top: 0;"><a href="/industries/${i.id}">${i.title}</a></h3>`;
-      html += `<p><strong>الجمهور المستهدف:</strong> ${i.targetAudience}</p>`;
-      html += `</div>`;
-    });
-    html += `</div>`;
-  } 
-  else if (route === '/locations') {
-    html += `<h2>تغطية خدماتنا في جميع محافظات ومناطق دولة الكويت</h2>`;
-    html += `<div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px;">`;
-    siteConfig.locations.forEach(l => {
-      html += `<div style="border: 1px solid #eee; padding: 15px; border-radius: 8px;">`;
-      html += `<h3 style="margin-top: 0;"><a href="/locations/${l.id}">${l.title}</a></h3>`;
-      html += `<p>${l.intro}</p>`;
-      html += `</div>`;
-    });
-    html += `</div>`;
-  }
-  else if (route === '/portfolio') {
-    html += `<h2>معرض أعمال ميديا لاند - مشاريع حقيقية وناجحة في الكويت</h2>`;
-    siteConfig.projects.forEach(p => {
-      html += `<div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px;">`;
-      html += `<h3>${p.title}</h3>`;
-      html += `<p><strong>العميل:</strong> ${p.client} | <strong>القسم:</strong> ${p.category}</p>`;
-      html += `<p>${p.description}</p>`;
-      html += `<p><strong>الخدمات المستخدمة:</strong> ${p.servicesUsed.join('، ')}</p>`;
-      html += `</div>`;
-    });
-  }
-  else if (route === '/case-studies') {
-    html += `<h2>دراسات حالة تسويقية لعملائنا في الكويت</h2>`;
-    siteConfig.caseStudies.forEach(cs => {
-      html += `<div style="margin-bottom: 30px; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">`;
-      html += `<h3>${cs.title}</h3>`;
-      html += `<p><strong>العميل:</strong> ${cs.clientName}</p>`;
-      html += `<p><strong>التحدي:</strong> ${cs.challenge}</p>`;
-      html += `<p><strong>الهدف:</strong> ${cs.target}</p>`;
-      html += `<p><strong>الحل:</strong> ${cs.solution}</p>`;
-      html += `<h4>النتائج المحققة:</h4><ul>`;
-      cs.results.forEach(r => {
-        html += `<li>${r}</li>`;
-      });
-      html += `</ul></div>`;
-    });
-  }
-  else if (route === '/blog') {
-    html += `<h2>أحدث مقالات ونصائح التسويق الرقمي والدعاية في الكويت</h2>`;
-    siteConfig.blog.forEach(b => {
-      html += `<div style="margin-bottom: 20px;">`;
-      html += `<h3><a href="/blog/${b.id}">${b.title}</a></h3>`;
-      html += `<p><small>تاريخ النشر: ${b.date} | الكاتب: ${b.author}</small></p>`;
-      html += `<p>${b.intro}</p>`;
-      html += `</div>`;
-    });
-  }
-  // Dynamic Services Details
-  else if (route.startsWith('/services/')) {
-    const serviceId = route.replace('/services/', '');
-    const s = siteConfig.services.find(item => item.id === serviceId);
-    if (s) {
-      html += `<h2>مقدمة الخدمة</h2><p>${s.description}</p>`;
-      
-      html += `<h3>القطاعات المستهدفة:</h3><ul>`;
-      s.suitableFor.forEach(sec => {
-        html += `<li>${sec}</li>`;
-      });
-      html += `</ul>`;
-
-      html += `<h3>المميزات والفوائد لشركتك:</h3><ul>`;
-      s.features.forEach(rec => {
-        html += `<li>${rec}</li>`;
-      });
-      html += `</ul>`;
-
-      html += `<h3>كيف نقدم هذه الخدمة باحترافية؟</h3><p>${s.solution}</p>`;
-    }
-  }
-  // Dynamic Industries Details
-  else if (route.startsWith('/industries/')) {
-    const industryId = route.replace('/industries/', '');
-    const i = siteConfig.industries.find(item => item.id === industryId);
-    if (i) {
-      html += `<h2>مقدمة القطاع للجمهور</h2><p>${i.targetAudience}</p>`;
-      
-      html += `<h3>التحديات الشائعة في هذا القطاع:</h3><ul>`;
-      i.challenges.forEach(sec => {
-        html += `<li>${sec}</li>`;
-      });
-      html += `</ul>`;
-
-      html += `<h3>الخدمات الترويجية والبرمجية الموصى بها:</h3><ul>`;
-      i.recommendedServices.forEach(rec => {
-        html += `<li>${rec}</li>`;
-      });
-      html += `</ul>`;
-
-      html += `<h3>كيفية قياس نجاح الحملات والأداء لهذا القطاع:</h3><p>${i.measurement}</p>`;
-    }
-  }
-  // Dynamic Locations Details
-  else if (route.startsWith('/locations/')) {
-    const locationId = route.replace('/locations/', '');
-    const l = siteConfig.locations.find(item => item.id === locationId);
-    if (l) {
-      html += `<h2>دعاية وتسويق في ${l.title}</h2><p>${l.intro}</p>`;
-      
-      html += `<h3>المشاريع والأعمال التي نخدمها:</h3><ul>`;
-      l.sectors.forEach(sec => {
-        html += `<li>${sec}</li>`;
-      });
-      html += `</ul>`;
-
-      html += `<h3>المناطق المغطاة بالتفصيل:</h3><p>${l.subAreas.join('، ')}</p>`;
-
-      html += `<h3>الخدمات الموصى بها لمشاريع هذه المنطقة:</h3><ul>`;
-      l.recommendedServices.forEach(rec => {
-        html += `<li>${rec}</li>`;
-      });
-      html += `</ul>`;
-
-      html += `<h3>كيف نساعد مشاريع المنطقة على النمو؟</h3><p>${l.howWeDeliver}</p>`;
-    }
-  }
-  // Dynamic Blog Details
-  else if (route.startsWith('/blog/')) {
-    const blogId = route.replace('/blog/', '');
-    const b = siteConfig.blog.find(item => item.id === blogId);
-    if (b) {
-      html += `<p><small>تاريخ النشر: ${b.date} | الكاتب: ${b.author}</small></p>`;
-      html += `<p>${b.intro}</p>`;
-      
-      b.sections.forEach(sec => {
-        html += `<h3>${sec.heading}</h3>`;
-        html += `<p>${sec.text}</p>`;
-      });
-    }
-  }
-
-  // FAQ section if exists
-  if (seo.faq && seo.faq.length > 0) {
-    html += `<h2 style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">الأسئلة الشائعة والأجوبة (FAQ)</h2>`;
-    seo.faq.forEach(f => {
-      html += `<div style="margin-bottom: 20px;">`;
-      html += `<h4 style="margin-bottom: 5px; color: #111;">❓ ${f.q}</h4>`;
-      html += `<p style="margin-top: 0; color: #444;">💡 ${f.a}</p>`;
-      html += `</div>`;
-    });
-  }
-
-  // Common CTA footer
-  html += `<div style="margin-top: 50px; background-color: #f7f9ff; padding: 25px; border-radius: 12px; border-right: 5px solid #0055ff; text-align: center;">`;
-  html += `<h3>هل تريد مضاعفة مبيعات وأرباح مشروعك في الكويت؟</h3>`;
-  html += `<p>تواصل مع فريق ميديا لاند للدعاية والإعلان والتسويق الرقمي الآن واستفد من استشارة تسويقية هاتفية مجانية مخصصة لمشروعك.</p>`;
-  html += `<p><strong>رقم الهاتف المباشر:</strong> <a href="tel:${siteConfig.phone.replace(/\s+/g, '')}">${siteConfig.phone}</a></p>`;
-  html += `<p><strong>واتساب مباشر:</strong> <a href="${siteConfig.whatsappUrl}">مراسلة عبر واتساب</a></p>`;
-  html += `</div>`;
-
-  html += `</div>`;
-  return html;
-}
-
 // Generate static files
 allRoutes.forEach(route => {
   const seo = getSeoForPathname(route);
   const jsonLd = generateJsonLd(seo);
-  const semanticContent = generateSemanticContent(route);
+  
+  // Render the exact React component tree into string
+  let appHtml = '';
+  try {
+    appHtml = renderToString(
+      React.createElement(StaticRouter, { location: route },
+        React.createElement(AppContent)
+      )
+    );
+  } catch (error) {
+    console.error(`Error rendering route ${route}:`, error);
+    // Fallback to empty string if a component fails
+    appHtml = '';
+  }
+
+  // Handle robots directive (request-quote has noindex)
+  const robotsDirective = (route === '/request-quote' || route.startsWith('/u/'))
+    ? '<meta name="robots" content="noindex,follow" />'
+    : '<meta name="robots" content="index,follow" />';
 
   // Generate complete Meta block
   const metaBlock = `
     <title>${seo.title}</title>
     <meta name="description" content="${seo.description}" />
+    ${robotsDirective}
     <link rel="canonical" href="${seo.canonical}" />
     <meta property="og:title" content="${seo.title}" />
     <meta property="og:description" content="${seo.description}" />
@@ -284,8 +133,8 @@ allRoutes.forEach(route => {
     content = content.replace('</head>', `${metaBlock}\n</head>`);
   }
 
-  // Inject semantic HTML block into <div id="root"></div> for crawlers
-  content = content.replace('<div id="root"></div>', `<div id="root">${semanticContent}</div>`);
+  // Inject rendered React HTML block into <div id="root"></div>
+  content = content.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`);
 
   // Write file to destination
   if (route === '/') {
@@ -305,5 +154,54 @@ allRoutes.forEach(route => {
     console.log(`Pre-rendered: ${route} -> dist/${subPath}/index.html`);
   }
 });
+
+// Generate sitemap.xml dynamically from public active routes
+console.log('Generating sitemap.xml...');
+const sitemapRoutes = allRoutes.filter(route => {
+  const isExcluded = 
+    route.includes('/admin') || 
+    route.includes('/dashboard') || 
+    route.includes('/login') || 
+    route.startsWith('/u/') || 
+    route === '/request-quote';
+  return !isExcluded;
+});
+
+const lastmod = new Date().toISOString().split('T')[0];
+let sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+
+sitemapRoutes.forEach(route => {
+  const url = `${siteConfig.siteUrl}${route === '/' ? '' : route}`;
+  const changefreq = route === '/' ? 'daily' : 'weekly';
+  const priority = route === '/' ? '1.0' : route.startsWith('/services/') ? '0.8' : '0.6';
+  
+  sitemapXml += `
+  <url>
+    <loc>${url}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`;
+});
+
+sitemapXml += `\n</urlset>`;
+fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemapXml, 'utf-8');
+console.log('Dynamic sitemap.xml generated successfully!');
+
+// Generate robots.txt dynamically using central siteUrl
+console.log('Generating robots.txt...');
+const robotsTxt = `User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /login
+Disallow: /u/
+
+Sitemap: ${siteConfig.siteUrl}/sitemap.xml
+`;
+fs.writeFileSync(path.join(DIST_DIR, 'robots.txt'), robotsTxt, 'utf-8');
+console.log('robots.txt generated successfully!');
 
 console.log('Pre-rendering completed successfully!');

@@ -22,7 +22,7 @@ export function getSeoForPathname(pathname: string): PageSEO {
     path = '/' + path;
   }
 
-  const siteUrl = 'https://medialandkw.netlify.app';
+  const siteUrl = siteConfig.siteUrl;
 
   // Fallback defaults
   const defaults: PageSEO = {
@@ -52,7 +52,7 @@ export function getSeoForPathname(pathname: string): PageSEO {
     return {
       pathname: '/about',
       title: 'من نحن | ميديا لاند للدعاية والإعلان في الكويت',
-      description: 'تعرف على ميديا لاند، الوكالة الرائدة في الدعاية والإعلان والتسويق الرقمي بالكويت. فريق من المبدعين والبرمجيين والمصورين الملتزمين بالنتائج.',
+      description: 'تعرف على ميديا لاند، الوكالة المتخصصة في الدعاية والإعلان والتسويق الرقمي بالكويت. فريق من المبدعين والبرمجيين والمصورين الملتزمين بالنتائج.',
       h1: 'شركة ميديا لاند للدعاية والإعلان في الكويت',
       canonical: siteUrl + '/about',
       schemaType: 'AboutPage',
@@ -97,7 +97,7 @@ export function getSeoForPathname(pathname: string): PageSEO {
     return {
       pathname: '/case-studies',
       title: 'دراسات الحالة وقصص النجاح | ميديا لاند الكويت',
-      description: 'اكتشف دراسات حالة حقيقية ومفصلة تبين كيف ساعدت ميديا لاند المطاعم والشركات والمتاجر في الكويت على مضاعفة مبيعاتها وأرباحها بشكل قياسي.',
+      description: 'اكتشف دراسات حالة حقيقية ومفصلة تبين كيف ساعدت ميديا لاند المطاعم والشركات والمتاجر في الكويت على تحسين حضورها الرقمي والوصول لعملاء جدد بشكل منظم.',
       h1: 'دراسات حالة تسويقية لعملائنا في الكويت',
       canonical: siteUrl + '/case-studies',
       schemaType: 'CollectionPage',
@@ -320,7 +320,7 @@ export function getSeoForPathname(pathname: string): PageSEO {
 }
 
 export function generateJsonLd(seo: PageSEO): any {
-  const siteUrl = 'https://medialandkw.netlify.app';
+  const siteUrl = siteConfig.siteUrl;
   const logoUrl = `${siteUrl}/assets/logo.png`; // or correct path if exists
 
   const basicOrganization = {

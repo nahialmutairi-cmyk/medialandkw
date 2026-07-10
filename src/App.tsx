@@ -21,47 +21,53 @@ import { RequestQuote } from './pages/RequestQuote';
 import { LegalPages } from './pages/LegalPages';
 import { ClientPortal } from './components/ClientPortal';
 
+export function AppContent() {
+  return (
+    <Layout>
+      <Routes>
+        {/* Main Pages */}
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/case-studies" element={<CaseStudies />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/request-quote" element={<RequestQuote />} />
+        
+        {/* Services & Subpages */}
+        <Route path="/services" element={<Services />} />
+        <Route path="/services/:id" element={<ServiceDetail />} />
+        
+        {/* Sectors/Industries & Subpages */}
+        <Route path="/industries" element={<Industries />} />
+        <Route path="/industries/:id" element={<IndustryDetail />} />
+        
+        {/* Locations & Subpages */}
+        <Route path="/locations" element={<Locations />} />
+        <Route path="/locations/:id" element={<LocationDetail />} />
+        
+        {/* Marketing Blog & Subpages */}
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:id" element={<BlogDetail />} />
+        
+        {/* Legal Compliance */}
+        <Route path="/privacy-policy" element={<LegalPages />} />
+        <Route path="/terms-and-conditions" element={<LegalPages />} />
+        <Route path="/cookie-policy" element={<LegalPages />} />
+
+        {/* Isolated Client Portal */}
+        <Route path="/u/:clientId" element={<ClientPortal />} />
+
+        {/* Catch-all Fallback */}
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </Layout>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          {/* Main Pages */}
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/case-studies" element={<CaseStudies />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/request-quote" element={<RequestQuote />} />
-          
-          {/* Services & Subpages */}
-          <Route path="/services" element={<Services />} />
-          <Route path="/services/:id" element={<ServiceDetail />} />
-          
-          {/* Sectors/Industries & Subpages */}
-          <Route path="/industries" element={<Industries />} />
-          <Route path="/industries/:id" element={<IndustryDetail />} />
-          
-          {/* Locations & Subpages */}
-          <Route path="/locations" element={<Locations />} />
-          <Route path="/locations/:id" element={<LocationDetail />} />
-          
-          {/* Marketing Blog & Subpages */}
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:id" element={<BlogDetail />} />
-          
-          {/* Legal Compliance */}
-          <Route path="/privacy-policy" element={<LegalPages />} />
-          <Route path="/terms-and-conditions" element={<LegalPages />} />
-          <Route path="/cookie-policy" element={<LegalPages />} />
-
-          {/* Isolated Client Portal */}
-          <Route path="/u/:clientId" element={<ClientPortal />} />
-
-          {/* Catch-all Fallback */}
-          <Route path="*" element={<Home />} />
-        </Routes>
-      </Layout>
+      <AppContent />
     </BrowserRouter>
   );
 }
