@@ -2,16 +2,73 @@ import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, MessageSquare, ArrowUpRight, Phone, Instagram, Send, Globe, ChevronRight } from 'lucide-react';
 import { siteConfig } from '../siteConfig';
+import { getSeoForPathname, generateJsonLd } from '../seoData';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
 
-  // Scroll to top on page change
+  // Scroll to top and dynamically update SEO metadata on page change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     setMobileMenuOpen(false);
+
+    try {
+      const seo = getSeoForPathname(pathname);
+      
+      // Update Title
+      document.title = seo.title;
+
+      // Update Meta Description
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.setAttribute('name', 'description');
+        document.head.appendChild(metaDesc);
+      }
+      metaDesc.setAttribute('content', seo.description);
+
+      // Update Canonical Link
+      let canonicalLink = document.querySelector('link[rel="canonical"]');
+      if (!canonicalLink) {
+        canonicalLink = document.createElement('link');
+        canonicalLink.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonicalLink);
+      }
+      canonicalLink.setAttribute('href', seo.canonical);
+
+      // Update Open Graph Title
+      let ogTitle = document.querySelector('meta[property="og:title"]');
+      if (!ogTitle) {
+        ogTitle = document.createElement('meta');
+        ogTitle.setAttribute('property', 'og:title');
+        document.head.appendChild(ogTitle);
+      }
+      ogTitle.setAttribute('content', seo.title);
+
+      // Update Open Graph Description
+      let ogDesc = document.querySelector('meta[property="og:description"]');
+      if (!ogDesc) {
+        ogDesc = document.createElement('meta');
+        ogDesc.setAttribute('property', 'og:description');
+        document.head.appendChild(ogDesc);
+      }
+      ogDesc.setAttribute('content', seo.description);
+
+      // Inject / Update JSON-LD Script tag
+      let jsonLdScript = document.getElementById('json-ld-seo-schema');
+      if (!jsonLdScript) {
+        jsonLdScript = document.createElement('script');
+        jsonLdScript.setAttribute('id', 'json-ld-seo-schema');
+        jsonLdScript.setAttribute('type', 'application/ld+json');
+        document.head.appendChild(jsonLdScript);
+      }
+      jsonLdScript.textContent = JSON.stringify(generateJsonLd(seo));
+
+    } catch (err) {
+      console.error('Error updating SEO on navigation:', err);
+    }
   }, [pathname]);
 
   useEffect(() => {

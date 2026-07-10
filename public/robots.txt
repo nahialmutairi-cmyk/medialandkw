@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /request-quote
+Disallow: /privacy-policy
+Disallow: /terms-and-conditions
+Disallow: /cookie-policy
+Disallow: /u/
+
+Sitemap: https://medialandkw.netlify.app/sitemap.xml
