@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, MessageSquare, Check, Target, BarChart, Eye } from 'lucide-react';
 import { siteConfig } from '../siteConfig';
+import { getServiceIndustryPath, serviceIndustryPages } from '../serviceIndustryData';
 
 export function IndustryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +21,7 @@ export function IndustryDetail() {
   const prefilledWhatsappUrl = `${siteConfig.whatsappUrl}?text=${encodeURIComponent(
     `مرحباً ميديا لاند، نملك مشروعاً في قطاع: ${industry.title} ونريد الحصول على استشارة وخطة تسويق وحملات إعلانية مخصصة.`
   )}`;
+  const serviceLandingPages = serviceIndustryPages.filter((page) => page.industryId === industry.id);
 
   return (
     <div className="max-w-5xl mx-auto px-6 sm:px-10 pb-20 space-y-16">
@@ -149,6 +151,19 @@ export function IndustryDetail() {
           ))}
         </div>
       </div>
+
+      {serviceLandingPages.length > 0 && (
+        <div className="space-y-6">
+          <h3 className="text-lg font-bold text-white border-r-4 border-[#FF3E55] pr-3">خدمات مخصصة لهذا القطاع</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {serviceLandingPages.map((page) => (
+              <Link key={getServiceIndustryPath(page)} to={getServiceIndustryPath(page)} className="bg-[#12141E] border border-white/5 hover:border-[#FF3E55]/40 rounded-xl p-5 text-xs font-bold text-white transition-colors">
+                {page.title}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
     </div>
   );

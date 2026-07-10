@@ -7,6 +7,7 @@ import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { Services } from './pages/Services';
 import { ServiceDetail } from './pages/ServiceDetail';
+import { ServiceIndustryDetail } from './pages/ServiceIndustryDetail';
 import { Industries } from './pages/Industries';
 import { IndustryDetail } from './pages/IndustryDetail';
 import { Locations } from './pages/Locations';
@@ -35,6 +36,7 @@ export function AppContent() {
         
         {/* Services & Subpages */}
         <Route path="/services" element={<Services />} />
+        <Route path="/services/:serviceId/:industryId" element={<ServiceIndustryDetail />} />
         <Route path="/services/:id" element={<ServiceDetail />} />
         
         {/* Sectors/Industries & Subpages */}
