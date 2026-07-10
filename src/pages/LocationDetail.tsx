@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { ArrowRight, MapPin, Sparkles, Compass, Check, Users, ShieldCheck, MessageSquare } from 'lucide-react';
 import { siteConfig } from '../siteConfig';
+import { areaData, getAreaPath } from '../areaData';
 
 export function LocationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +22,7 @@ export function LocationDetail() {
   const prefilledWhatsappUrl = `${siteConfig.whatsappUrl}?text=${encodeURIComponent(
     `مرحباً ميديا لاند، أود الاستفسار عن حملات الدعاية والتسويق المستهدفة لمناطق محافظة: ${location.title}`
   )}`;
+  const independentAreas = areaData.filter((area) => area.governorateId === location.id);
 
   // Generate dynamic keywords for regional SEO
   const seoKeywords = [
@@ -87,6 +89,20 @@ export function LocationDetail() {
           ))}
         </div>
       </div>
+
+      {independentAreas.length > 0 && (
+        <div className="space-y-6">
+          <h3 className="text-lg font-bold text-white border-r-4 border-[#0055FF] pr-3">صفحات المناطق التابعة للمحافظة</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {independentAreas.map((area) => (
+              <Link key={getAreaPath(area)} to={getAreaPath(area)} className="bg-[#12141E] border border-white/5 hover:border-[#0055FF]/40 rounded-xl p-5 flex items-center justify-between gap-3 transition-colors">
+                <span className="text-xs font-bold text-white">خدمات الدعاية والإعلان في {area.nameAr}</span>
+                <ArrowRight className="w-4 h-4 text-[#0055FF] rotate-180" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Sectors & Industries we target */}
       <div className="space-y-6">

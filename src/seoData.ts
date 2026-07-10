@@ -1,5 +1,6 @@
 import { siteConfig } from './siteConfig';
 import { findServiceIndustryPageByPath } from './serviceIndustryData';
+import { findAreaByPath } from './areaData';
 
 export interface PageSEO {
   pathname: string;
@@ -294,6 +295,27 @@ export function getSeoForPathname(pathname: string): PageSEO {
     }
   }
 
+  // Dynamic independent area pages
+  const area = findAreaByPath(path);
+  if (area) {
+    const governorate = siteConfig.locations.find((item) => item.id === area.governorateId);
+    return {
+      pathname: path,
+      title: area.metaTitle,
+      description: area.metaDescription,
+      h1: area.h1,
+      canonical: siteUrl + path,
+      schemaType: 'WebPage',
+      faq: area.faq,
+      breadcrumbs: [
+        { name: 'الرئيسية', url: siteUrl + '/' },
+        { name: 'المناطق', url: siteUrl + '/locations' },
+        { name: governorate?.title ?? area.governorateId, url: siteUrl + `/locations/${area.governorateId}` },
+        { name: area.nameAr, url: siteUrl + path }
+      ]
+    };
+  }
+
   // Dynamic locations
   if (path.startsWith('/locations/')) {
     const locationId = path.replace('/locations/', '');
@@ -492,7 +514,7 @@ export function generateJsonLd(seo: PageSEO): any {
     return faqSchema ? [breadcrumbSchema, blogPostSchema, faqSchema] : [breadcrumbSchema, blogPostSchema];
   }
 
-  if (seo.pathname.startsWith('/locations/')) {
+  if (seo.pathname.startsWith('/locations/') && seo.schemaType !== 'WebPage') {
     // Location specific professional service
     const locationServiceSchema = {
       ...basicProfessionalService,
