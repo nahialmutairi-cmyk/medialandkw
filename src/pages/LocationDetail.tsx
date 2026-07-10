@@ -18,7 +18,7 @@ export function LocationDetail() {
   }
 
   // Pre-filled WhatsApp message for local inquiries
-  const prefilledWhatsappUrl = `https://wa.me/96565118963?text=${encodeURIComponent(
+  const prefilledWhatsappUrl = `${siteConfig.whatsappUrl}?text=${encodeURIComponent(
     `مرحباً ميديا لاند، أود الاستفسار عن حملات الدعاية والتسويق المستهدفة لمناطق محافظة: ${location.title}`
   )}`;
 

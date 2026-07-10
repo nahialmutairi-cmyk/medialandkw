@@ -44,11 +44,13 @@ interface ClipWipeTitleProps {
   children: ReactNode;
   className?: string;
   id?: string;
+  as?: 'h1' | 'h2';
 }
 
-export function ClipWipeTitle({ children, className = "", id }: ClipWipeTitleProps) {
+export function ClipWipeTitle({ children, className = "", id, as = 'h2' }: ClipWipeTitleProps) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLHeadingElement>(null);
+  const Tag = as;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -69,12 +71,12 @@ export function ClipWipeTitle({ children, className = "", id }: ClipWipeTitlePro
   }, []);
 
   return (
-    <h2
+    <Tag
       id={id}
       ref={ref}
       className={`clip-wipe-hidden ${isVisible ? 'clip-wipe-visible' : ''} ${className}`}
     >
       {children}
-    </h2>
+    </Tag>
   );
 }

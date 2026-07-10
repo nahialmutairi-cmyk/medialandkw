@@ -10,7 +10,7 @@ export function Locations() {
       {/* Title block */}
       <div className="text-center space-y-4 max-w-3xl mx-auto">
         <span className="text-xs uppercase text-[#0055FF] tracking-widest block font-bold">التغطية والسيادة الجغرافية في الكويت</span>
-        <ClipWipeTitle className="text-3xl sm:text-5xl font-black text-white">
+        <ClipWipeTitle as="h1" className="text-3xl sm:text-5xl font-black text-white">
           خدماتنا الإعلانية تغطي <span className="text-[#FF3E55]">محافظات الكويت الست</span>
         </ClipWipeTitle>
         <p className="text-[#F0F4FF]/70 text-xs sm:text-sm leading-relaxed">

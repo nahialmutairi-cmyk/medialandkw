@@ -1,24 +1,25 @@
 import { Link } from 'react-router-dom';
 import { MessageSquare, ArrowUpRight, TrendingUp, Users, Target, ShieldCheck, Sparkles } from 'lucide-react';
 import { ClipWipeTitle } from '../components/ScrollReveal';
+import { siteConfig } from '../siteConfig';
 
 export function CaseStudies() {
   const caseStudies = [
     {
-      title: "مضاعفة مبيعات سلسلة مطاعم برجر كويتية 3.5 أضعاف",
+      title: "تحسين حضور سلسلة مطاعم برجر كويتية في القنوات الرقمية",
       sector: "المطاعم والأغذية",
-      metrics: { roas: "5.8x", engagement: "+450%", costReduction: "-38%" },
+      metrics: { reach: "محلي", engagement: "أفضل", tracking: "أوضح" },
       challenge: "تراجع أرقام الطلبات الخارجية وزيادة تكلفة الوصول للمستهلك على منصات التوصيل.",
       solution: "أطلقنا باقة تصوير سينمائي للأكلات مفعمة بالحيوية والشهية، ووجهنا الإعلانات الممولة نحو نطاق جغرافي ضيق بمحافظات حولي والعاصمة والفروانية مع تفعيل كود خصم حصري.",
-      result: "زيادة هائلة في حجم المبيعات المباشرة وكسر قيود عمولات تطبيقات التوصيل بنجاح تام."
+      result: "تحسن تفاعل الجمهور مع المحتوى، وأصبحت رسائل الحملة أوضح وأسهل قياساً عبر قنوات التواصل."
     },
     {
-      title: "توليد 1400+ اتصال حجز لعيادة أسنان تجميلية بـ 3 أشهر",
+      title: "تنظيم حملات حجز رقمية لعيادة أسنان تجميلية",
       sector: "الرعاية والخدمات الطبية",
-      metrics: { roas: "4.2x", engagement: "+320%", costReduction: "-22%" },
+      metrics: { reach: "موجه", engagement: "منظم", tracking: "مقاس" },
       challenge: "شدة المنافسة بين عيادات الأسنان في الكويت وصعوبة إثبات المصداقية الرقمية.",
       solution: "أقمنا جلسة تصوير فيديو احترافية توعوية للأطباء يشرحون فيها حالات زراعة وابتسامة هوليود، ونشرناها مصحوبة بحملات Lead Generation مستهدفة.",
-      result: "تدفق غير مسبوق للمكالمات وتأكيد حجز العشرات من حالات زراعة وتجميل الأسنان أسبوعياً."
+      result: "تحسنت جودة الاستفسارات الواردة، وأصبحت رحلة العميل من الإعلان إلى التواصل أكثر وضوحاً."
     }
   ];
 
@@ -27,12 +28,12 @@ export function CaseStudies() {
       
       {/* Title */}
       <div className="text-center space-y-4 max-w-3xl mx-auto">
-        <span className="text-xs uppercase text-[#FF3E55] tracking-widest block font-bold">قصص نجاح ومبيعات حقيقية</span>
-        <ClipWipeTitle className="text-3xl sm:text-5xl font-black text-white">
-          دراسات حالة رقمية <span className="text-[#0055FF]">تحتفي بالأرقام</span>
+        <span className="text-xs uppercase text-[#FF3E55] tracking-widest block font-bold">نماذج عمل قابلة للقياس</span>
+        <ClipWipeTitle as="h1" className="text-3xl sm:text-5xl font-black text-white">
+          دراسات حالة رقمية <span className="text-[#0055FF]">تشرح منهج العمل</span>
         </ClipWipeTitle>
         <p className="text-[#F0F4FF]/70 text-xs sm:text-sm leading-relaxed">
-          نحن نقيس نجاح إعلاناتنا وتصاميمنا وبرمجياتنا بحجم المبيعات والأرباح الحقيقية التي تتدفق لحسابات شركائنا في الكويت.
+          نعرض هنا نماذج توضح طريقة التفكير والتخطيط والقياس في الحملات، دون ادعاء نتائج غير موثقة أو أرقام غير منشورة.
         </p>
       </div>
 
@@ -53,16 +54,16 @@ export function CaseStudies() {
               {/* Stats highlights */}
               <div className="grid grid-cols-3 gap-3 text-center bg-[#0A0A0F] p-4 rounded-2xl border border-white/5">
                 <div className="space-y-1">
-                  <span className="text-xs text-gray-500 block">العائد الإعلاني ROAS</span>
-                  <span className="text-xl font-black text-[#22C55E] font-mono">{cs.metrics.roas}</span>
+                  <span className="text-xs text-gray-500 block">نطاق الوصول</span>
+                  <span className="text-xl font-black text-[#22C55E] font-mono">{cs.metrics.reach}</span>
                 </div>
                 <div className="space-y-1 border-x border-white/5">
                   <span className="text-xs text-gray-500 block">تفاعل الجمهور</span>
                   <span className="text-xl font-black text-white font-mono">{cs.metrics.engagement}</span>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs text-gray-500 block">انخفاض تكلفة العميل</span>
-                  <span className="text-xl font-black text-[#0055FF] font-mono">{cs.metrics.costReduction}</span>
+                  <span className="text-xs text-gray-500 block">وضوح القياس</span>
+                  <span className="text-xl font-black text-[#0055FF] font-mono">{cs.metrics.tracking}</span>
                 </div>
               </div>
 
@@ -96,15 +97,15 @@ export function CaseStudies() {
 
             <div className="pt-6 border-t border-white/5 mt-6">
               <a
-                href={`https://wa.me/96565118963?text=${encodeURIComponent(
-                  `مرحباً ميديا لاند، أرغب بالاستفسار عن خطتكم التسويقية للقطاع: ${cs.sector} وتطبيق تجربة نجاح مماثلة لمشروعي.`
+                  href={`${siteConfig.whatsappUrl}?text=${encodeURIComponent(
+                  `مرحباً ميديا لاند، أرغب بالاستفسار عن خطتكم التسويقية للقطاع: ${cs.sector} وبناء تجربة مناسبة لمشروعي.`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full text-center py-3 bg-[#0055FF] hover:bg-[#0044CC] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg"
               >
                 <MessageSquare className="w-4 h-4" />
-                <span>احصل على حملة مماثلة لمشروعك</span>
+                <span>اطلب خطة مناسبة لمشروعك</span>
               </a>
             </div>
 

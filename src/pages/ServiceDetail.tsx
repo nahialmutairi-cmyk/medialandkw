@@ -18,7 +18,7 @@ export function ServiceDetail() {
   }
 
   // Pre-filled WhatsApp message for user intent
-  const prefilledWhatsappUrl = `https://wa.me/96565118963?text=${encodeURIComponent(
+  const prefilledWhatsappUrl = `${siteConfig.whatsappUrl}?text=${encodeURIComponent(
     `مرحباً ميديا لاند، أود الاستفسار وطلب تفاصيل وعرض سعر لخدمة: ${service.title}`
   )}`;
 

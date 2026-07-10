@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { ShieldCheck, FileText, Lock, Sparkles } from 'lucide-react';
 import { ClipWipeTitle } from '../components/ScrollReveal';
 
 export function LegalPages() {
-  const [activeTab, setActiveTab] = useState<'privacy' | 'terms' | 'cookie'>('privacy');
+  const { pathname } = useLocation();
+  const activeTab: 'privacy' | 'terms' | 'cookie' =
+    pathname === '/terms-and-conditions'
+      ? 'terms'
+      : pathname === '/cookie-policy'
+        ? 'cookie'
+        : 'privacy';
 
   return (
     <div className="max-w-4xl mx-auto px-6 sm:px-10 pb-20 space-y-12">
@@ -11,7 +17,7 @@ export function LegalPages() {
       {/* Title */}
       <div className="text-center space-y-4 max-w-2xl mx-auto">
         <span className="text-xs uppercase text-[#0055FF] tracking-widest block font-bold">الالتزام التنظيمي والقانوني بدولة الكويت</span>
-        <ClipWipeTitle className="text-3xl sm:text-4xl font-black text-white">
+        <ClipWipeTitle as="h1" className="text-3xl sm:text-4xl font-black text-white">
           السياسات الأمنية <span className="text-[#FF3E55]">والشروط التنظيمية</span>
         </ClipWipeTitle>
         <p className="text-[#F0F4FF]/70 text-xs sm:text-sm leading-relaxed">
@@ -21,8 +27,8 @@ export function LegalPages() {
 
       {/* Tabs */}
       <div className="flex gap-2 justify-center bg-[#12141E] p-2 rounded-2xl border border-white/5 max-w-md mx-auto">
-        <button
-          onClick={() => setActiveTab('privacy')}
+        <Link
+          to="/privacy-policy"
           className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
             activeTab === 'privacy'
               ? 'bg-gradient-to-r from-[#0055FF] to-[#FF3E55] text-white'
@@ -31,9 +37,9 @@ export function LegalPages() {
         >
           <Lock className="w-3.5 h-3.5" />
           <span>سياسة الخصوصية</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('terms')}
+        </Link>
+        <Link
+          to="/terms-and-conditions"
           className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
             activeTab === 'terms'
               ? 'bg-gradient-to-r from-[#0055FF] to-[#FF3E55] text-white'
@@ -42,9 +48,9 @@ export function LegalPages() {
         >
           <FileText className="w-3.5 h-3.5" />
           <span>الشروط والأحكام</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('cookie')}
+        </Link>
+        <Link
+          to="/cookie-policy"
           className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
             activeTab === 'cookie'
               ? 'bg-gradient-to-r from-[#0055FF] to-[#FF3E55] text-white'
@@ -53,7 +59,7 @@ export function LegalPages() {
         >
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>ملفات الارتباط</span>
-        </button>
+        </Link>
       </div>
 
       {/* Content Box */}
