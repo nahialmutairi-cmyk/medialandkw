@@ -1,4 +1,5 @@
 import { siteConfig } from './siteConfig';
+import { findServiceIndustryPageByPath } from './serviceIndustryData';
 
 export interface PageSEO {
   pathname: string;
@@ -224,6 +225,27 @@ export function getSeoForPathname(pathname: string): PageSEO {
       breadcrumbs: [
         { name: 'الرئيسية', url: siteUrl + '/' },
         { name: 'سياسة ملفات تعريف الارتباط', url: siteUrl + '/cookie-policy' }
+      ]
+    };
+  }
+
+  // Dynamic service x industry landing pages
+  const serviceIndustryPage = findServiceIndustryPageByPath(path);
+  if (serviceIndustryPage) {
+    const service = siteConfig.services.find((item) => item.id === serviceIndustryPage.serviceId);
+    return {
+      pathname: path,
+      title: serviceIndustryPage.metaTitle,
+      description: serviceIndustryPage.metaDesc,
+      h1: serviceIndustryPage.h1,
+      canonical: siteUrl + path,
+      schemaType: 'Service',
+      faq: serviceIndustryPage.faq,
+      breadcrumbs: [
+        { name: 'الرئيسية', url: siteUrl + '/' },
+        { name: 'خدماتنا', url: siteUrl + '/services' },
+        { name: service?.title ?? serviceIndustryPage.title, url: siteUrl + `/services/${serviceIndustryPage.serviceId}` },
+        { name: serviceIndustryPage.title, url: siteUrl + path }
       ]
     };
   }

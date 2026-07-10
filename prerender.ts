@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { siteConfig } from './src/siteConfig';
 import { getSeoForPathname, generateJsonLd } from './src/seoData';
 import { AppContent } from './src/App';
+import { getServiceIndustryPath, serviceIndustryPages } from './src/serviceIndustryData';
 
 // Mock browser environment for Server-Side Rendering
 const globalAny: any = global;
@@ -87,6 +88,7 @@ const staticRoutes = [
 ];
 
 const serviceRoutes = siteConfig.services.map(s => `/services/${s.id}`);
+const serviceIndustryRoutes = serviceIndustryPages.map(getServiceIndustryPath);
 const industryRoutes = siteConfig.industries.map(i => `/industries/${i.id}`);
 const locationRoutes = siteConfig.locations.map(l => `/locations/${l.id}`);
 const blogRoutes = siteConfig.blog.map(b => `/blog/${b.id}`);
@@ -94,6 +96,7 @@ const blogRoutes = siteConfig.blog.map(b => `/blog/${b.id}`);
 const allRoutes = [
   ...staticRoutes,
   ...serviceRoutes,
+  ...serviceIndustryRoutes,
   ...industryRoutes,
   ...locationRoutes,
   ...blogRoutes
