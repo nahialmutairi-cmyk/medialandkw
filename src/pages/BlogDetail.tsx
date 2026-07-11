@@ -1,11 +1,12 @@
 import { useParams, Link } from 'react-router-dom';
 import { ArrowRight, Calendar, User, Clock, MessageSquare, Tag, Bookmark } from 'lucide-react';
 import { siteConfig } from '../siteConfig';
+import { commercialArticles, findCommercialArticle } from '../commercialContent';
 
 export function BlogDetail() {
   const { id } = useParams<{ id: string }>();
 
-  const post = siteConfig.blog.find(b => b.id === id);
+  const post = findCommercialArticle(id);
 
   if (!post) {
     return (
@@ -41,7 +42,7 @@ export function BlogDetail() {
         </div>
         
         <h1 className="text-2xl sm:text-4xl font-black text-white leading-snug">
-          {post.title}
+          {post.h1}
         </h1>
 
         <div className="flex flex-wrap items-center gap-4 text-gray-400 text-xs font-mono pt-2 border-b border-white/5 pb-6">
@@ -95,6 +96,11 @@ export function BlogDetail() {
             ))}
           </div>
 
+          <div className="bg-[#12141E]/40 p-6 rounded-2xl border border-white/5 space-y-2">
+            <h3 className="text-base font-bold text-white">الخلاصة</h3>
+            <p className="text-xs sm:text-sm text-gray-400 leading-relaxed text-justify">{post.conclusion}</p>
+          </div>
+
           {/* FAQ specific to the blog post */}
           {post.faq && post.faq.length > 0 && (
             <div className="bg-[#12141E] p-6 sm:p-8 rounded-3xl border border-white/5 space-y-6 mt-12">
@@ -109,6 +115,62 @@ export function BlogDetail() {
               </div>
             </div>
           )}
+
+          <div className="space-y-6 pt-4">
+            <h3 className="text-base font-bold text-white border-r-4 border-[#0055FF] pr-3">خدمات مرتبطة</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {post.relatedServiceIds.map((serviceId) => {
+                const service = siteConfig.services.find((item) => item.id === serviceId);
+                return service ? (
+                  <Link key={service.id} to={`/services/${service.id}`} className="bg-[#12141E] border border-white/5 hover:border-[#0055FF]/40 rounded-xl p-4 text-xs font-bold text-white transition-colors">
+                    {service.title}
+                  </Link>
+                ) : null;
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-base font-bold text-white border-r-4 border-[#FF3E55] pr-3">قطاعات مناسبة</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {post.relatedIndustryIds.map((industryId) => {
+                const industry = siteConfig.industries.find((item) => item.id === industryId);
+                return industry ? (
+                  <Link key={industry.id} to={`/industries/${industry.id}`} className="bg-[#12141E] border border-white/5 hover:border-[#FF3E55]/40 rounded-xl p-4 text-xs font-bold text-white transition-colors">
+                    {industry.title}
+                  </Link>
+                ) : null;
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-base font-bold text-white">مناطق مرتبطة</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {post.relatedLocationIds.map((locationId) => {
+                const location = siteConfig.locations.find((item) => item.id === locationId);
+                return location ? (
+                  <Link key={location.id} to={`/locations/${location.id}`} className="bg-[#12141E] border border-white/5 hover:border-[#0055FF]/40 rounded-xl p-4 text-xs font-bold text-white transition-colors">
+                    {location.title}
+                  </Link>
+                ) : null;
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-base font-bold text-white">مقالات ذات صلة</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {post.relatedArticleIds.map((articleId) => {
+                const article = commercialArticles.find((item) => item.id === articleId);
+                return article ? (
+                  <Link key={article.id} to={`/blog/${article.id}`} className="bg-[#12141E] border border-white/5 hover:border-[#0055FF]/40 rounded-xl p-4 text-xs font-bold text-white transition-colors">
+                    {article.title}
+                  </Link>
+                ) : null;
+              })}
+            </div>
+          </div>
 
           {/* Tags cloud placeholder */}
           <div className="pt-6 border-t border-white/5 flex flex-wrap gap-2">
@@ -128,8 +190,8 @@ export function BlogDetail() {
         {/* Floating Sidebar Box */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-[#12141E] border border-[#0055FF]/10 rounded-2xl p-6 space-y-5 shadow-xl sticky top-24">
-            <h4 className="text-sm font-bold text-white">هل تبحث عن شريك تسويقي موثوق؟</h4>
-            <p className="text-xs text-gray-400 leading-relaxed">بفضل دمجنا الفريد للبرمجة مع الفن الإبداعي، نساعدك في صياغة حملات تسويقية حقيقية ترفع مبيعاتك.</p>
+            <h4 className="text-sm font-bold text-white">هل تحتاج خطة مرتبطة بهدف مشروعك؟</h4>
+            <p className="text-xs text-gray-400 leading-relaxed">شاركنا الخدمة والجمهور والقنوات الحالية لنراجع معك نطاق العمل وخطوات التنفيذ المناسبة.</p>
             
             <a
               href={prefilledWhatsappUrl}
@@ -138,11 +200,11 @@ export function BlogDetail() {
               className="w-full text-center py-3 bg-[#22C55E] hover:bg-[#1eb152] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition-transform hover:scale-102"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>استشارة مجانية بالواتساب</span>
+              <span>تواصل عبر واتساب</span>
             </a>
 
             <div className="text-[10px] text-gray-500 text-center leading-relaxed">
-              * سنقوم بتحليل قنوات تسويق مشروعك مجاناً عند تواصلك معنا الآن.
+              * يبدأ النقاش بفهم الاحتياج وتحديد المعلومات المطلوبة لإعداد نطاق واضح.
             </div>
           </div>
         </div>

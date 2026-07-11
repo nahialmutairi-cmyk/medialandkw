@@ -1,5 +1,6 @@
 import { siteConfig } from './siteConfig';
 import { findServiceIndustryPageByPath } from './serviceIndustryData';
+import { findCommercialArticle } from './commercialContent';
 
 export interface PageSEO {
   pathname: string;
@@ -319,15 +320,15 @@ export function getSeoForPathname(pathname: string): PageSEO {
   // Dynamic blog posts
   if (path.startsWith('/blog/')) {
     const blogId = path.replace('/blog/', '');
-    const post = siteConfig.blog.find((b) => b.id === blogId);
+    const post = findCommercialArticle(blogId);
     if (post) {
       return {
         pathname: path,
         title: `${post.title} | ميديا لاند الكويت`,
         description: post.metaDesc,
-        h1: post.title,
+        h1: post.h1,
         canonical: siteUrl + path,
-        schemaType: 'BlogPosting',
+        schemaType: 'Article',
         faq: post.faq,
         breadcrumbs: [
           { name: 'الرئيسية', url: siteUrl + '/' },
@@ -472,20 +473,24 @@ export function generateJsonLd(seo: PageSEO): any {
   }
 
   if (seo.pathname.startsWith('/blog/')) {
+    const article = findCommercialArticle(seo.pathname.replace('/blog/', ''));
     const blogPostSchema = {
       '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      'headline': seo.title,
+      '@type': 'Article',
+      'headline': seo.h1,
       'description': seo.description,
       'url': seo.canonical,
+      'image': article?.coverImage,
+      'datePublished': article?.date,
+      'dateModified': article?.updatedDate,
       'mainEntityOfPage': {
         '@type': 'WebPage',
         '@id': seo.canonical
       },
       'publisher': basicOrganization,
       'author': {
-        '@type': 'Person',
-        'name': 'ميديا لاند الكويت'
+        '@type': 'Organization',
+        'name': article?.author ?? 'ميديا لاند الكويت'
       },
       'inLanguage': 'ar'
     };
