@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Calendar, User, ArrowUpRight, Clock, Sparkles } from 'lucide-react';
-import { siteConfig } from '../siteConfig';
+import { commercialArticles } from '../commercialContent';
 import { ClipWipeTitle } from '../components/ScrollReveal';
 
 export function Blog() {
@@ -20,7 +20,7 @@ export function Blog() {
 
       {/* Grid of articles */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {siteConfig.blog.map((post) => (
+        {commercialArticles.map((post) => (
           <div
             key={post.id}
             className="bg-[#12141E] border border-white/5 rounded-3xl overflow-hidden hover:border-[#0055FF]/30 hover:shadow-2xl transition-all group flex flex-col justify-between"
