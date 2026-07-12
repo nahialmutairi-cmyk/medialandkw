@@ -1,5 +1,6 @@
 import { siteConfig } from './siteConfig';
 import { findServiceIndustryPageByPath } from './serviceIndustryData';
+import { findCaseStudy } from './caseStudyData';
 
 export interface PageSEO {
   pathname: string;
@@ -250,6 +251,28 @@ export function getSeoForPathname(pathname: string): PageSEO {
     };
   }
 
+  // Dynamic case study scenarios
+  if (path.startsWith('/case-studies/')) {
+    const studyId = path.replace('/case-studies/', '');
+    const study = findCaseStudy(studyId);
+    if (study) {
+      return {
+        pathname: path,
+        title: `${study.title} | ميديا لاند الكويت`,
+        description: study.metaDescription,
+        h1: study.h1,
+        canonical: siteUrl + path,
+        schemaType: 'Article',
+        faq: study.faq,
+        breadcrumbs: [
+          { name: 'الرئيسية', url: siteUrl + '/' },
+          { name: 'دراسات الحالة', url: siteUrl + '/case-studies' },
+          { name: study.title, url: siteUrl + path }
+        ]
+      };
+    }
+  }
+
   // Dynamic services
   if (path.startsWith('/services/')) {
     const serviceId = path.replace('/services/', '');
@@ -490,6 +513,26 @@ export function generateJsonLd(seo: PageSEO): any {
       'inLanguage': 'ar'
     };
     return faqSchema ? [breadcrumbSchema, blogPostSchema, faqSchema] : [breadcrumbSchema, blogPostSchema];
+  }
+
+  if (seo.pathname.startsWith('/case-studies/')) {
+    const study = findCaseStudy(seo.pathname.replace('/case-studies/', ''));
+    const caseStudySchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      'headline': seo.h1,
+      'description': seo.description,
+      'url': seo.canonical,
+      'image': study?.coverImage,
+      'mainEntityOfPage': {
+        '@type': 'WebPage',
+        '@id': seo.canonical
+      },
+      'publisher': basicOrganization,
+      'author': basicOrganization,
+      'inLanguage': 'ar'
+    };
+    return faqSchema ? [breadcrumbSchema, caseStudySchema, faqSchema] : [breadcrumbSchema, caseStudySchema];
   }
 
   if (seo.pathname.startsWith('/locations/')) {
