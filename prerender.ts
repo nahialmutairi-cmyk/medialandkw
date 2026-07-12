@@ -9,6 +9,7 @@ import { AppContent } from './src/App';
 import { getServiceIndustryPath, serviceIndustryPages } from './src/serviceIndustryData';
 import { areaData, getAreaPath } from './src/areaData';
 import { commercialArticles } from './src/commercialContent';
+import { caseStudyPages } from './src/caseStudyData';
 
 // Mock browser environment for Server-Side Rendering
 const globalAny: any = global;
@@ -95,6 +96,7 @@ const industryRoutes = siteConfig.industries.map(i => `/industries/${i.id}`);
 const locationRoutes = siteConfig.locations.map(l => `/locations/${l.id}`);
 const areaRoutes = areaData.map(getAreaPath);
 const blogRoutes = commercialArticles.map(b => `/blog/${b.id}`);
+const caseStudyRoutes = caseStudyPages.map(study => `/case-studies/${study.id}`);
 
 const allRoutes = [
   ...staticRoutes,
@@ -103,7 +105,8 @@ const allRoutes = [
   ...industryRoutes,
   ...locationRoutes,
   ...areaRoutes,
-  ...blogRoutes
+  ...blogRoutes,
+  ...caseStudyRoutes
 ];
 
 console.log(`Starting pre-rendering for ${allRoutes.length} routes...`);
