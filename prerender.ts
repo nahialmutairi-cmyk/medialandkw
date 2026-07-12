@@ -7,6 +7,7 @@ import { siteConfig } from './src/siteConfig';
 import { getSeoForPathname, generateJsonLd } from './src/seoData';
 import { AppContent } from './src/App';
 import { getServiceIndustryPath, serviceIndustryPages } from './src/serviceIndustryData';
+import { areaData, getAreaPath } from './src/areaData';
 
 // Mock browser environment for Server-Side Rendering
 const globalAny: any = global;
@@ -91,6 +92,7 @@ const serviceRoutes = siteConfig.services.map(s => `/services/${s.id}`);
 const serviceIndustryRoutes = serviceIndustryPages.map(getServiceIndustryPath);
 const industryRoutes = siteConfig.industries.map(i => `/industries/${i.id}`);
 const locationRoutes = siteConfig.locations.map(l => `/locations/${l.id}`);
+const areaRoutes = areaData.map(getAreaPath);
 const blogRoutes = siteConfig.blog.map(b => `/blog/${b.id}`);
 
 const allRoutes = [
@@ -99,6 +101,7 @@ const allRoutes = [
   ...serviceIndustryRoutes,
   ...industryRoutes,
   ...locationRoutes,
+  ...areaRoutes,
   ...blogRoutes
 ];
 
