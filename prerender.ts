@@ -7,6 +7,9 @@ import { siteConfig } from './src/siteConfig';
 import { getSeoForPathname, generateJsonLd } from './src/seoData';
 import { AppContent } from './src/App';
 import { getServiceIndustryPath, serviceIndustryPages } from './src/serviceIndustryData';
+import { areaData, getAreaPath } from './src/areaData';
+import { commercialArticles } from './src/commercialContent';
+import { caseStudyPages } from './src/caseStudyData';
 
 // Mock browser environment for Server-Side Rendering
 const globalAny: any = global;
@@ -91,7 +94,9 @@ const serviceRoutes = siteConfig.services.map(s => `/services/${s.id}`);
 const serviceIndustryRoutes = serviceIndustryPages.map(getServiceIndustryPath);
 const industryRoutes = siteConfig.industries.map(i => `/industries/${i.id}`);
 const locationRoutes = siteConfig.locations.map(l => `/locations/${l.id}`);
-const blogRoutes = siteConfig.blog.map(b => `/blog/${b.id}`);
+const areaRoutes = areaData.map(getAreaPath);
+const blogRoutes = commercialArticles.map(b => `/blog/${b.id}`);
+const caseStudyRoutes = caseStudyPages.map(study => `/case-studies/${study.id}`);
 
 const allRoutes = [
   ...staticRoutes,
@@ -99,7 +104,9 @@ const allRoutes = [
   ...serviceIndustryRoutes,
   ...industryRoutes,
   ...locationRoutes,
-  ...blogRoutes
+  ...areaRoutes,
+  ...blogRoutes,
+  ...caseStudyRoutes
 ];
 
 console.log(`Starting pre-rendering for ${allRoutes.length} routes...`);

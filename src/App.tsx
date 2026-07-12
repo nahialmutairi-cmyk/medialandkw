@@ -12,8 +12,10 @@ import { Industries } from './pages/Industries';
 import { IndustryDetail } from './pages/IndustryDetail';
 import { Locations } from './pages/Locations';
 import { LocationDetail } from './pages/LocationDetail';
+import { AreaDetail } from './pages/AreaDetail';
 import { Portfolio } from './pages/Portfolio';
 import { CaseStudies } from './pages/CaseStudies';
+import { CaseStudyDetail } from './pages/CaseStudyDetail';
 import { About } from './pages/About';
 import { Blog } from './pages/Blog';
 import { BlogDetail } from './pages/BlogDetail';
@@ -31,6 +33,7 @@ export function AppContent() {
         <Route path="/about" element={<About />} />
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/case-studies" element={<CaseStudies />} />
+        <Route path="/case-studies/:id" element={<CaseStudyDetail />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/request-quote" element={<RequestQuote />} />
         
@@ -45,6 +48,7 @@ export function AppContent() {
         
         {/* Locations & Subpages */}
         <Route path="/locations" element={<Locations />} />
+        <Route path="/locations/:governorateId/:areaId" element={<AreaDetail />} />
         <Route path="/locations/:id" element={<LocationDetail />} />
         
         {/* Marketing Blog & Subpages */}

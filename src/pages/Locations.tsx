@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Compass, MapPin, ChevronRight } from 'lucide-react';
 import { siteConfig } from '../siteConfig';
 import { ClipWipeTitle } from '../components/ScrollReveal';
+import { areaData, getAreaPath } from '../areaData';
 
 export function Locations() {
   return (
@@ -46,6 +47,17 @@ export function Locations() {
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {loc.sectors.slice(0, 3).map((sec, i) => (
                     <span key={i} className="bg-white/5 text-[#F0F4FF]/70 text-[9px] px-2.5 py-1 rounded-full">{sec}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-3 border-t border-white/5">
+                <span className="text-[10px] text-[#0055FF] font-bold block">صفحات المناطق:</span>
+                <div className="flex flex-wrap gap-2">
+                  {areaData.filter((area) => area.governorateId === loc.id).map((area) => (
+                    <Link key={getAreaPath(area)} to={getAreaPath(area)} className="bg-[#0055FF]/10 hover:bg-[#0055FF]/20 text-[#8AAEFF] text-[10px] px-2.5 py-1.5 rounded-lg transition-colors">
+                      {area.nameAr}
+                    </Link>
                   ))}
                 </div>
               </div>

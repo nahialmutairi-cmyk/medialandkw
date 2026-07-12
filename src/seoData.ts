@@ -1,5 +1,8 @@
 import { siteConfig } from './siteConfig';
 import { findServiceIndustryPageByPath } from './serviceIndustryData';
+import { findAreaByPath } from './areaData';
+import { findCommercialArticle } from './commercialContent';
+import { findCaseStudy } from './caseStudyData';
 
 export interface PageSEO {
   pathname: string;
@@ -250,6 +253,28 @@ export function getSeoForPathname(pathname: string): PageSEO {
     };
   }
 
+  // Dynamic case study scenarios
+  if (path.startsWith('/case-studies/')) {
+    const studyId = path.replace('/case-studies/', '');
+    const study = findCaseStudy(studyId);
+    if (study) {
+      return {
+        pathname: path,
+        title: `${study.title} | ميديا لاند الكويت`,
+        description: study.metaDescription,
+        h1: study.h1,
+        canonical: siteUrl + path,
+        schemaType: 'Article',
+        faq: study.faq,
+        breadcrumbs: [
+          { name: 'الرئيسية', url: siteUrl + '/' },
+          { name: 'دراسات الحالة', url: siteUrl + '/case-studies' },
+          { name: study.title, url: siteUrl + path }
+        ]
+      };
+    }
+  }
+
   // Dynamic services
   if (path.startsWith('/services/')) {
     const serviceId = path.replace('/services/', '');
@@ -294,6 +319,27 @@ export function getSeoForPathname(pathname: string): PageSEO {
     }
   }
 
+  // Dynamic independent area pages
+  const area = findAreaByPath(path);
+  if (area) {
+    const governorate = siteConfig.locations.find((item) => item.id === area.governorateId);
+    return {
+      pathname: path,
+      title: area.metaTitle,
+      description: area.metaDescription,
+      h1: area.h1,
+      canonical: siteUrl + path,
+      schemaType: 'WebPage',
+      faq: area.faq,
+      breadcrumbs: [
+        { name: 'الرئيسية', url: siteUrl + '/' },
+        { name: 'المناطق', url: siteUrl + '/locations' },
+        { name: governorate?.title ?? area.governorateId, url: siteUrl + `/locations/${area.governorateId}` },
+        { name: area.nameAr, url: siteUrl + path }
+      ]
+    };
+  }
+
   // Dynamic locations
   if (path.startsWith('/locations/')) {
     const locationId = path.replace('/locations/', '');
@@ -319,15 +365,15 @@ export function getSeoForPathname(pathname: string): PageSEO {
   // Dynamic blog posts
   if (path.startsWith('/blog/')) {
     const blogId = path.replace('/blog/', '');
-    const post = siteConfig.blog.find((b) => b.id === blogId);
+    const post = findCommercialArticle(blogId);
     if (post) {
       return {
         pathname: path,
         title: `${post.title} | ميديا لاند الكويت`,
         description: post.metaDesc,
-        h1: post.title,
+        h1: post.h1,
         canonical: siteUrl + path,
-        schemaType: 'BlogPosting',
+        schemaType: 'Article',
         faq: post.faq,
         breadcrumbs: [
           { name: 'الرئيسية', url: siteUrl + '/' },
@@ -472,27 +518,51 @@ export function generateJsonLd(seo: PageSEO): any {
   }
 
   if (seo.pathname.startsWith('/blog/')) {
+    const article = findCommercialArticle(seo.pathname.replace('/blog/', ''));
     const blogPostSchema = {
       '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      'headline': seo.title,
+      '@type': 'Article',
+      'headline': seo.h1,
       'description': seo.description,
       'url': seo.canonical,
+      'image': article?.coverImage,
+      'datePublished': article?.date,
+      'dateModified': article?.updatedDate,
       'mainEntityOfPage': {
         '@type': 'WebPage',
         '@id': seo.canonical
       },
       'publisher': basicOrganization,
       'author': {
-        '@type': 'Person',
-        'name': 'ميديا لاند الكويت'
+        '@type': 'Organization',
+        'name': article?.author ?? 'ميديا لاند الكويت'
       },
       'inLanguage': 'ar'
     };
     return faqSchema ? [breadcrumbSchema, blogPostSchema, faqSchema] : [breadcrumbSchema, blogPostSchema];
   }
 
-  if (seo.pathname.startsWith('/locations/')) {
+  if (seo.pathname.startsWith('/case-studies/')) {
+    const study = findCaseStudy(seo.pathname.replace('/case-studies/', ''));
+    const caseStudySchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      'headline': seo.h1,
+      'description': seo.description,
+      'url': seo.canonical,
+      'image': study?.coverImage,
+      'mainEntityOfPage': {
+        '@type': 'WebPage',
+        '@id': seo.canonical
+      },
+      'publisher': basicOrganization,
+      'author': basicOrganization,
+      'inLanguage': 'ar'
+    };
+    return faqSchema ? [breadcrumbSchema, caseStudySchema, faqSchema] : [breadcrumbSchema, caseStudySchema];
+  }
+
+  if (seo.pathname.startsWith('/locations/') && seo.schemaType !== 'WebPage') {
     // Location specific professional service
     const locationServiceSchema = {
       ...basicProfessionalService,
