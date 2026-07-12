@@ -464,9 +464,11 @@ export function generateJsonLd(seo: PageSEO): any {
   };
 
   // 1. Breadcrumb List Schema
+  const breadcrumbId = `${seo.canonical.replace(/\/$/, '')}/#breadcrumb`;
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
+    '@id': breadcrumbId,
     'itemListElement': seo.breadcrumbs.map((bc, idx) => ({
       '@type': 'ListItem',
       'position': idx + 1,
@@ -583,7 +585,7 @@ export function generateJsonLd(seo: PageSEO): any {
     'name': seo.title,
     'description': seo.description,
     'isPartOf': { '@id': `${siteUrl}/#website` },
-    'breadcrumb': { '@id': `${seo.canonical}/#breadcrumb` }
+    'breadcrumb': { '@id': breadcrumbId }
   };
 
   return faqSchema ? [breadcrumbSchema, generalPageSchema, faqSchema] : [breadcrumbSchema, generalPageSchema];
