@@ -30,6 +30,8 @@ export function Blog() {
               <img
                 src={post.coverImage}
                 alt={post.title}
+                loading="lazy"
+                decoding="async"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -93,6 +95,7 @@ export function Blog() {
         <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-3 pt-2">
           <input
             type="email"
+            aria-label="البريد الإلكتروني"
             placeholder="أدخل بريدك الإلكتروني..."
             className="flex-1 bg-[#0A0A0F] border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#0055FF]"
           />

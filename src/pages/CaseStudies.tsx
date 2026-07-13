@@ -20,7 +20,14 @@ export function CaseStudies() {
         {caseStudyPages.map((study) => (
           <article key={study.id} className="bg-[#12141E] border border-white/5 rounded-2xl overflow-hidden flex flex-col hover:border-[#0055FF]/30 transition-colors">
             <div className="aspect-video bg-white/5 overflow-hidden">
-              <img src={study.coverImage} alt={study.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+              <img
+                src={study.coverImage}
+                alt={study.title}
+                loading="lazy"
+                decoding="async"
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="p-6 flex-1 flex flex-col justify-between gap-6">
               <div className="space-y-4">
