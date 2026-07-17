@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, ChevronLeft, Lightbulb, MessageSquare, Target } from 'lucide-react';
 import { findCaseStudy } from '../caseStudyData';
 import { siteConfig } from '../siteConfig';
+import { RelatedContent } from '../components/RelatedContent';
 
 export function CaseStudyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -118,6 +119,22 @@ export function CaseStudyDetail() {
           {location && <Link to={`/locations/${location.id}`} className="bg-white/5 hover:bg-white/10 rounded-xl p-4 text-xs font-bold text-white transition-colors">{location.title}</Link>}
         </div>
       </section>
+
+      <RelatedContent
+        currentPath={`/case-studies/${study.id}`}
+        context={{
+          serviceIds: study.serviceIds,
+          industryIds: study.industryIds,
+          locationIds: [study.locationId],
+          keywords: [study.title, study.h1, study.sectorLabel, study.challenge],
+        }}
+        excludedPaths={[
+          ...study.serviceIds.map((serviceId) => `/services/${serviceId}`),
+          ...study.industryIds.map((industryId) => `/industries/${industryId}`),
+          ...study.articleIds.map((articleId) => `/blog/${articleId}`),
+          `/locations/${study.locationId}`,
+        ]}
+      />
 
       <section className="space-y-6">
         <h2 className="text-xl font-bold text-white">أسئلة شائعة عن هذا المثال</h2>

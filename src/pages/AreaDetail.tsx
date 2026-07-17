@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2, Check, ChevronLeft, MapPin, MessageSquare, Phone, Target } from 'lucide-react';
 import { areaData, findArea, getAreaPath } from '../areaData';
 import { siteConfig } from '../siteConfig';
+import { RelatedContent } from '../components/RelatedContent';
 
 export function AreaDetail() {
   const { governorateId, areaId } = useParams<{ governorateId: string; areaId: string }>();
@@ -152,6 +153,24 @@ export function AreaDetail() {
           ))}
         </div>
       </section>
+
+      <RelatedContent
+        currentPath={getAreaPath(area)}
+        context={{
+          serviceIds: area.recommendedServiceIds,
+          industryIds: area.recommendedIndustryIds,
+          locationIds: [governorate.id],
+          keywords: [area.nameAr, governorate.title, area.introduction, area.serviceDelivery],
+        }}
+        excludedPaths={[
+          `/locations/${governorate.id}`,
+          '/locations',
+          ...area.recommendedServiceIds.map((serviceId) => `/services/${serviceId}`),
+          ...area.recommendedIndustryIds.map((industryId) => `/industries/${industryId}`),
+          ...area.nearbyAreas.map((key) => `/locations/${key}`),
+          ...area.internalLinks.map((item) => item.path),
+        ]}
+      />
 
       <section className="space-y-6">
         <h2 className="text-xl font-bold text-white">أسئلة شائعة عن خدماتنا في {area.nameAr}</h2>

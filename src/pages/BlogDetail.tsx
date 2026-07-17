@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowRight, Calendar, User, Clock, MessageSquare, Tag, Bookmark } from 'lucide-react';
 import { siteConfig } from '../siteConfig';
 import { commercialArticles, findCommercialArticle } from '../commercialContent';
+import { RelatedContent } from '../components/RelatedContent';
 
 export function BlogDetail() {
   const { id } = useParams<{ id: string }>();
@@ -171,6 +172,22 @@ export function BlogDetail() {
               })}
             </div>
           </div>
+
+          <RelatedContent
+            currentPath={`/blog/${post.id}`}
+            context={{
+              serviceIds: post.relatedServiceIds,
+              industryIds: post.relatedIndustryIds,
+              locationIds: post.relatedLocationIds,
+              keywords: [post.title, post.h1, post.intro],
+            }}
+            excludedPaths={[
+              ...post.relatedServiceIds.map((serviceId) => `/services/${serviceId}`),
+              ...post.relatedIndustryIds.map((industryId) => `/industries/${industryId}`),
+              ...post.relatedLocationIds.map((locationId) => `/locations/${locationId}`),
+              ...post.relatedArticleIds.map((articleId) => `/blog/${articleId}`),
+            ]}
+          />
 
           {/* Tags cloud placeholder */}
           <div className="pt-6 border-t border-white/5 flex flex-wrap gap-2">

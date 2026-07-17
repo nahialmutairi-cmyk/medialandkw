@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowRight, MessageSquare, Check, Sparkles, Clock, Calendar, PhoneCall } from 'lucide-react';
 import { siteConfig } from '../siteConfig';
 import { getServiceIndustryPath, serviceIndustryPages } from '../serviceIndustryData';
+import { RelatedContent } from '../components/RelatedContent';
 
 export function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -164,6 +165,24 @@ export function ServiceDetail() {
           </div>
         </div>
       )}
+
+      <RelatedContent
+        currentPath={`/services/${service.id}`}
+        context={{
+          serviceIds: [service.id],
+          keywords: [service.title, service.subtitle, service.description, ...service.suitableFor],
+          preferredPaths: service.id === 'printing'
+            ? [
+                '/services/branding',
+                '/services/graphic-design',
+                '/industries/restaurants-marketing',
+                '/industries/events-marketing',
+                '/blog/choose-successful-visual-identity',
+              ]
+            : undefined,
+        }}
+        excludedPaths={industryLandingPages.map(getServiceIndustryPath)}
+      />
 
     </div>
   );
