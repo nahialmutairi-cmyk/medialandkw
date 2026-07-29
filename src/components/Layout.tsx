@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, MessageSquare, ArrowUpRight, Phone, Instagram, Send, Globe, ChevronRight } from 'lucide-react';
 import { siteConfig } from '../siteConfig';
 import { getSeoForPathname, generateJsonLd } from '../seoData';
+import { normalizeInternalHref } from '../url';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -101,6 +102,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
       console.error('Error updating SEO on navigation:', err);
     }
   }, [pathname]);
+
+  // React Router route data stays slashless; keep rendered internal anchors aligned with Netlify's final URLs.
+  useEffect(() => {
+    document.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((anchor) => {
+      const normalizedHref = normalizeInternalHref(anchor.getAttribute('href') ?? '');
+      if (normalizedHref !== anchor.getAttribute('href')) anchor.setAttribute('href', normalizedHref);
+    });
+  });
 
   useEffect(() => {
     const handleScroll = () => {

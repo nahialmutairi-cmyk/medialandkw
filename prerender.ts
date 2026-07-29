@@ -10,6 +10,7 @@ import { getServiceIndustryPath, serviceIndustryPages } from './src/serviceIndus
 import { areaData, getAreaPath } from './src/areaData';
 import { commercialArticles } from './src/commercialContent';
 import { caseStudyPages } from './src/caseStudyData';
+import { normalizeInternalHref, toTrailingSlashUrl } from './src/url';
 
 // Mock browser environment for Server-Side Rendering
 const globalAny: any = global;
@@ -73,6 +74,12 @@ function stripSeoHeadTags(html: string): string {
     .replace(/\s*<script\s+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, '');
 }
 
+function normalizeRenderedInternalLinks(html: string): string {
+  return html.replace(/(<a\b[^>]*\bhref=["'])([^"']+)(["'])/gi, (_match, prefix, href, suffix) => {
+    return `${prefix}${normalizeInternalHref(href)}${suffix}`;
+  });
+}
+
 // Gather all routes dynamically
 const staticRoutes = [
   '/',
@@ -119,11 +126,11 @@ allRoutes.forEach(route => {
   // Render the exact React component tree into string
   let appHtml = '';
   try {
-    appHtml = renderToString(
+    appHtml = normalizeRenderedInternalLinks(renderToString(
       React.createElement(MemoryRouter, { initialEntries: [route] },
         React.createElement(AppContent)
       )
-    );
+    ));
   } catch (error) {
     console.error(`Error rendering route ${route}:`, error);
     // Fallback to empty string if a component fails
@@ -198,7 +205,7 @@ let sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
 sitemapRoutes.forEach(route => {
-  const url = `${siteConfig.siteUrl}${route === '/' ? '' : route}`;
+  const url = toTrailingSlashUrl(route);
   const changefreq = route === '/' ? 'daily' : 'weekly';
   const priority = route === '/' ? '1.0' : route.startsWith('/services/') ? '0.8' : '0.6';
   

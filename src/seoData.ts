@@ -3,6 +3,7 @@ import { findServiceIndustryPageByPath } from './serviceIndustryData';
 import { findAreaByPath } from './areaData';
 import { findCommercialArticle } from './commercialContent';
 import { findCaseStudy } from './caseStudyData';
+import { toTrailingSlashUrl, withUrlFragment } from './url';
 
 export interface PageSEO {
   pathname: string;
@@ -16,7 +17,7 @@ export interface PageSEO {
   contentHTML?: string; // Pre-rendered content block for crawler reading
 }
 
-export function getSeoForPathname(pathname: string): PageSEO {
+function getSeoForPathnameRaw(pathname: string): PageSEO {
   // Normalize pathname: remove trailing slash, ensure starts with slash
   let path = pathname.trim();
   if (path !== '/' && path.endsWith('/')) {
@@ -387,8 +388,22 @@ export function getSeoForPathname(pathname: string): PageSEO {
   return defaults;
 }
 
+export function getSeoForPathname(pathname: string): PageSEO {
+  const seo = getSeoForPathnameRaw(pathname);
+
+  return {
+    ...seo,
+    canonical: toTrailingSlashUrl(seo.pathname),
+    breadcrumbs: seo.breadcrumbs.map((breadcrumb) => ({
+      ...breadcrumb,
+      url: toTrailingSlashUrl(new URL(breadcrumb.url).pathname),
+    })),
+  };
+}
+
 export function generateJsonLd(seo: PageSEO): any {
   const siteUrl = siteConfig.siteUrl;
+  const siteRootUrl = toTrailingSlashUrl('/');
   const logoUrl = `${siteUrl}/assets/logo.png`; // or correct path if exists
 
   const basicOrganization = {
@@ -397,7 +412,7 @@ export function generateJsonLd(seo: PageSEO): any {
     '@id': `${siteUrl}/#organization`,
     'name': 'ميديا لاند للدعاية والإعلان',
     'alternateName': 'Media Land Agency',
-    'url': siteUrl,
+    'url': siteRootUrl,
     'logo': logoUrl,
     'email': siteConfig.email,
     'telephone': siteConfig.phone,
@@ -423,7 +438,7 @@ export function generateJsonLd(seo: PageSEO): any {
     '@id': `${siteUrl}/#service-agency`,
     'name': 'ميديا لاند للدعاية والإعلان وتسويق رقمي',
     'image': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
-    'url': siteUrl,
+    'url': siteRootUrl,
     'telephone': siteConfig.phone,
     'priceRange': '$$',
     'address': {
@@ -457,14 +472,14 @@ export function generateJsonLd(seo: PageSEO): any {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     '@id': `${siteUrl}/#website`,
-    'url': siteUrl,
+    'url': siteRootUrl,
     'name': 'ميديا لاند ميديا لاند للدعاية والإعلان',
     'description': 'ميديا لاند شركة دعاية وإعلان وتسويق رقمي في الكويت',
     'inLanguage': 'ar'
   };
 
   // 1. Breadcrumb List Schema
-  const breadcrumbId = `${seo.canonical.replace(/\/$/, '')}/#breadcrumb`;
+  const breadcrumbId = withUrlFragment(seo.canonical, 'breadcrumb');
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -568,7 +583,7 @@ export function generateJsonLd(seo: PageSEO): any {
     // Location specific professional service
     const locationServiceSchema = {
       ...basicProfessionalService,
-      '@id': `${seo.canonical}/#location-service`,
+      '@id': withUrlFragment(seo.canonical, 'location-service'),
       'name': `ميديا لاند للدعاية والإعلان - ${seo.h1}`,
       'description': seo.description,
       'url': seo.canonical
@@ -580,7 +595,7 @@ export function generateJsonLd(seo: PageSEO): any {
   const generalPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    '@id': `${seo.canonical}/#webpage`,
+    '@id': withUrlFragment(seo.canonical, 'webpage'),
     'url': seo.canonical,
     'name': seo.title,
     'description': seo.description,

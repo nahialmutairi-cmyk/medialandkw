@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build && tsx prerender.ts",
+    "build": "vite build && tsx prerender.ts && node scripts/trailing-slash-audit.mjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "seo:audit": "node scripts/seo-audit.mjs"
+    "seo:audit": "node scripts/seo-audit.mjs",
+    "url:audit": "node scripts/trailing-slash-audit.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
