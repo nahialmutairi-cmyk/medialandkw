@@ -76,7 +76,10 @@ if (!fs.existsSync(dist)) {
   const descriptions = new Map();
   const sitemapPath = path.join(dist, 'sitemap.xml');
   const sitemap = fs.existsSync(sitemapPath) ? fs.readFileSync(sitemapPath, 'utf8') : '';
-  const sitemapUrls = new Set(matchAll(/<loc>(.*?)<\/loc>/g, sitemap).map((url) => url.replace(siteUrl, '') || '/'));
+  const sitemapUrls = new Set(matchAll(/<loc>(.*?)<\/loc>/g, sitemap).map((url) => {
+    const route = url.replace(siteUrl, '') || '/';
+    return route === '/' ? '/' : route.replace(/\/$/, '');
+  }));
 
   if (!htmlFiles.length) errors.push('no prerendered HTML files found in dist');
   if (!sitemap) errors.push('dist/sitemap.xml is missing');
@@ -95,7 +98,8 @@ if (!fs.existsSync(dist)) {
     if (!description) errors.push(`${route}: missing meta description`);
     if (h1s.length !== 1) errors.push(`${route}: expected one H1, found ${h1s.length}`);
     if (canonicals.length !== 1) errors.push(`${route}: expected one canonical, found ${canonicals.length}`);
-    if (canonicals[0] && canonicals[0] !== `${siteUrl}${route === '/' ? '/' : route}`) {
+    const expectedCanonical = `${siteUrl}${route === '/' ? '/' : `${route}/`}`;
+    if (canonicals[0] && canonicals[0] !== expectedCanonical) {
       errors.push(`${route}: canonical mismatch (${canonicals[0]})`);
     }
 
@@ -124,6 +128,9 @@ if (!fs.existsSync(dist)) {
       if (internal === 'BROKEN_HASH') errors.push(`${route}: broken placeholder href="#"`);
       if (internal && internal !== 'BROKEN_HASH' && !internal.startsWith('/u/') && !routes.has(internal)) {
         errors.push(`${route}: broken internal link to ${href}`);
+      }
+      if (href.startsWith('/') && href !== '/' && !href.endsWith('/') && !/[?#]/.test(href) && !/\.[a-z0-9]+$/i.test(href)) {
+        errors.push(`${route}: internal link is missing trailing slash: ${href}`);
       }
     }
 
