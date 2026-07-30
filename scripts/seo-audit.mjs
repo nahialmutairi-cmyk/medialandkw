@@ -142,7 +142,7 @@ if (!fs.existsSync(dist)) {
   }
 
   const robots = fs.existsSync(path.join(dist, 'robots.txt')) ? fs.readFileSync(path.join(dist, 'robots.txt'), 'utf8') : '';
-  for (const allowedRoute of ['/privacy-policy', '/terms-and-conditions', '/cookie-policy', '/about', '/contact']) {
+  for (const allowedRoute of ['/privacy-policy', '/terms-and-conditions', '/terms-of-service', '/cookie-policy', '/about', '/contact']) {
     if (new RegExp(`Disallow:\\s*${allowedRoute}\\b`).test(robots)) {
       errors.push(`robots.txt incorrectly disallows ${allowedRoute}`);
     }
