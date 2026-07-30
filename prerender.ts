@@ -241,6 +241,8 @@ console.log('robots.txt generated successfully!');
 // Generate Netlify redirects so prerendered HTML wins before the SPA fallback.
 console.log('Generating _redirects...');
 const redirectLines = [
+  'http://medialandkw.netlify.app/*    https://medialandkw.online/:splat    301!',
+  'https://medialandkw.netlify.app/*   https://medialandkw.online/:splat    301!',
   '/robots.txt     /robots.txt     200',
   '/sitemap.xml    /sitemap.xml    200',
   ...allRoutes
