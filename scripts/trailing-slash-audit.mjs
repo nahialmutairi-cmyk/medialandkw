@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const dist = path.join(root, 'dist');
-const siteUrl = 'https://medialandkw.netlify.app';
+const siteUrl = 'https://medialandkw.online';
 const reportPath = path.join(dist, 'trailing-slash-report.json');
 const errors = [];
 

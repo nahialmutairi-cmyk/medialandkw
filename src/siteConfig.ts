@@ -1,7 +1,7 @@
 import { Service, Industry, LocationData, BlogPost, Project } from './types';
 
 export const siteConfig = {
-  siteUrl: "https://medialandkw.netlify.app",
+  siteUrl: "https://medialandkw.online",
   brandNameAr: "ميديا لاند",
   brandNameEn: "Media Land",
   fullNameAr: "ميديا لاند للدعاية والإعلان",
