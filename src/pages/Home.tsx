@@ -48,6 +48,10 @@ export function Home() {
             مرحباً بك في وكالة ميديا لاند الإعلامية. نوفر باقات تسويقية مبتكرة، إدارة حسابات احترافية، إنتاج فيديو وتصوير سينمائي، وتطوير مواقع ومتاجر رقمية متكاملة لتحسين حضورك وفرص وصولك في السوق الكويتي.
           </p>
 
+          <h2 lang="en" className="text-sm sm:text-base font-bold tracking-wide text-white">
+            Media Land — Google Ads Reporting Portal
+          </h2>
+
           <p lang="en" className="text-[#F0F4FF]/70 leading-relaxed text-xs sm:text-sm max-w-2xl mx-auto">
             Media Land provides advertising services and a secure client reporting portal for authorized users to view assigned Google Ads performance data. The reporting portal is read-only and never changes Google Ads campaigns, budgets, ads, keywords, or account settings.
           </p>
