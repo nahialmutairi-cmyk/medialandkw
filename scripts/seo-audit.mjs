@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const dist = path.join(root, 'dist');
-const siteUrl = 'https://medialandkw.netlify.app';
+const siteUrl = 'https://medialandkw.online';
 const errors = [];
 const warnings = [];
 
