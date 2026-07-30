@@ -327,9 +327,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div>
               <h4 className="text-sm font-bold text-white mb-4 border-r-2 border-[#0055FF] pr-2">حساباتنا وسياساتنا</h4>
               <ul className="space-y-2.5 text-xs text-[#F0F4FF]/70 mb-4">
-                <li><Link to="/privacy-policy" className="hover:text-[#0055FF] transition-colors">سياسة الخصوصية</Link></li>
-                <li><Link to="/terms-and-conditions" className="hover:text-[#0055FF] transition-colors">الشروط والأحكام</Link></li>
-                <li><Link to="/cookie-policy" className="hover:text-[#0055FF] transition-colors">سياسة ملفات الارتباط</Link></li>
+                <li><Link to="/privacy-policy/" className="hover:text-[#0055FF] transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms-of-service/" className="hover:text-[#0055FF] transition-colors">Terms of Service</Link></li>
+                <li><Link to="/cookie-policy/" className="hover:text-[#0055FF] transition-colors">Cookie Policy</Link></li>
               </ul>
               <div className="flex gap-3 mt-4">
                 <a href={siteConfig.instagram} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/5 hover:bg-[#FF3E55]/20 flex items-center justify-center text-white transition-all">

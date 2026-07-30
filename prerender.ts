@@ -94,6 +94,7 @@ const staticRoutes = [
   '/blog',
   '/privacy-policy',
   '/terms-and-conditions',
+  '/terms-of-service',
   '/cookie-policy'
 ];
 

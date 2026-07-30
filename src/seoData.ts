@@ -218,6 +218,21 @@ function getSeoForPathnameRaw(pathname: string): PageSEO {
     };
   }
 
+  if (path === '/terms-of-service') {
+    return {
+      pathname: '/terms-of-service',
+      title: 'Terms of Service | Media Land Kuwait',
+      description: 'Terms of Service for Media Land advertising services and its read-only Google Ads reporting portal.',
+      h1: 'Terms of Service',
+      canonical: siteUrl + '/terms-of-service',
+      schemaType: 'WebPage',
+      breadcrumbs: [
+        { name: 'Home', url: siteUrl + '/' },
+        { name: 'Terms of Service', url: siteUrl + '/terms-of-service' }
+      ]
+    };
+  }
+
   if (path === '/cookie-policy') {
     return {
       pathname: '/cookie-policy',

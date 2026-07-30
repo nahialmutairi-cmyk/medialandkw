@@ -57,8 +57,13 @@ export function AppContent() {
         
         {/* Legal Compliance */}
         <Route path="/privacy-policy" element={<LegalPages />} />
+        <Route path="/privacy-policy/" element={<LegalPages />} />
         <Route path="/terms-and-conditions" element={<LegalPages />} />
+        <Route path="/terms-and-conditions/" element={<LegalPages />} />
+        <Route path="/terms-of-service" element={<LegalPages />} />
+        <Route path="/terms-of-service/" element={<LegalPages />} />
         <Route path="/cookie-policy" element={<LegalPages />} />
+        <Route path="/cookie-policy/" element={<LegalPages />} />
 
         {/* Isolated Client Portal */}
         <Route path="/u/:clientId" element={<ClientPortal />} />
