@@ -104,7 +104,23 @@ const faqs = [
 export function Client360AutoWash() {
   return (
     <article className="bg-[#071014] text-white" dir="rtl" lang="ar">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#071014]/92 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 sm:px-10">
+          <a href="#top" className="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BFFFD2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#071014]">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#22C55E]/40 bg-[#22C55E]/10 font-mono text-xl font-black text-white">
+              360
+            </span>
+            <span className="flex flex-col leading-none text-right">
+              <span className="text-base font-black text-white" dir="ltr">AUTO WASH</span>
+              <span className="mt-1 text-[11px] font-bold text-[#BFFFD2]">غسيل سيارات متنقل</span>
+            </span>
+          </a>
+          <WhatsAppButton location="hero" className="min-h-10 px-4 py-2 text-xs sm:min-h-11 sm:px-5" />
+        </div>
+      </header>
+
       <section className="relative overflow-hidden border-b border-white/10">
+        <span id="top" className="absolute top-0" aria-hidden="true" />
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,197,94,0.16),rgba(14,165,233,0.12)_38%,rgba(255,255,255,0)_70%)]" />
         <div className="absolute -left-20 top-24 h-72 w-72 rounded-full border border-[#22C55E]/20" />
         <div className="absolute -right-24 bottom-10 h-80 w-80 rounded-full border border-[#38BDF8]/15" />
@@ -241,7 +257,7 @@ export function Client360AutoWash() {
           </div>
           <h2 className="font-display text-3xl font-black text-white">غسيل السيارة صار أسهل</h2>
           <p className="mt-4 text-base leading-8 text-white/70">
-            صفحة 360 Auto Wash تركز على خدمة واحدة واضحة: غسيل السيارات المتنقل في موقع العميل، مع حجز مباشر عبر واتساب أو الاتصال.
+            360 Auto Wash يوفر لك خدمة غسيل سيارات متنقلة في موقعك، لتوفر وقتك وتطلب الخدمة مباشرة عند البيت أو الدوام حسب نطاق التغطية.
           </p>
         </div>
 

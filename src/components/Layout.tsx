@@ -9,6 +9,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
+  const isStandaloneClientLanding = pathname === '/clients/360autowash' || pathname === '/clients/360autowash/';
 
   // Scroll to top and dynamically update SEO metadata on page change
   useEffect(() => {
@@ -142,7 +143,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* HEADER NAVBAR */}
-      <header
+      {!isStandaloneClientLanding && <header
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
           scrolled 
             ? 'bg-[#12141E]/90 border-b border-[#0055FF]/10 backdrop-blur-md py-3 shadow-lg shadow-[#0055FF]/5' 
@@ -266,15 +267,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         )}
-      </header>
+      </header>}
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 z-10 pt-28">
+      <main className={`flex-1 z-10 ${isStandaloneClientLanding ? 'pt-0' : 'pt-28'}`}>
         {children}
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-[#12141E] border-t border-[#0055FF]/10 py-16 text-right relative z-20">
+      {!isStandaloneClientLanding && <footer className="bg-[#12141E] border-t border-[#0055FF]/10 py-16 text-right relative z-20">
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 border-b border-white/5 pb-12 mb-10">
@@ -353,10 +354,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
         </div>
-      </footer>
+      </footer>}
 
       {/* FLOATING WHATSAPP BUTTON */}
-      <div className="fixed bottom-6 left-6 z-50">
+      {!isStandaloneClientLanding && <div className="fixed bottom-6 left-6 z-50">
         <a
           href={siteConfig.whatsappUrl}
           target="_blank"
@@ -370,7 +371,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             تواصل معنا الآن ⚡
           </span>
         </a>
-      </div>
+      </div>}
 
     </div>
   );
