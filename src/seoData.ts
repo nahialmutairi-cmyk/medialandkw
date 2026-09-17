@@ -248,6 +248,43 @@ function getSeoForPathnameRaw(pathname: string): PageSEO {
     };
   }
 
+  if (path === '/clients/360autowash') {
+    return {
+      pathname: '/clients/360autowash',
+      title: '360 Auto Wash | غسيل سيارات متنقل في الكويت',
+      description: '360 Auto Wash لخدمة غسيل السيارات المتنقل في الكويت. نصل إليك عند البيت أو الدوام أو الموقع المناسب لك. للحجز والاستفسار اتصل أو تواصل على 67794155.',
+      h1: 'غسيل سيارات متنقل في الكويت – 360 Auto Wash',
+      canonical: siteUrl + '/clients/360autowash',
+      schemaType: 'Service',
+      faq: [
+        {
+          q: 'هل 360 Auto Wash مغسلة متنقلة؟',
+          a: 'نعم، الخدمة متنقلة وتصل إلى موقع العميل ضمن نطاق التغطية المتاح.',
+        },
+        {
+          q: 'هل يمكن طلب الغسيل عند البيت؟',
+          a: 'نعم، يمكن طلب الخدمة عند البيت حسب الموقع ونطاق التغطية.',
+        },
+        {
+          q: 'هل يمكن طلب الخدمة عند الدوام؟',
+          a: 'نعم، يمكن التنسيق لخدمة السيارة عند الدوام أو الموقع المناسب للعميل ضمن نطاق التغطية.',
+        },
+        {
+          q: 'كيف أحجز؟',
+          a: 'يمكن الحجز والاستفسار مباشرة عبر WhatsApp أو الاتصال على 67794155.',
+        },
+        {
+          q: 'ما أسعار غسيل السيارات؟',
+          a: 'للحصول على تفاصيل الخدمة والأسعار الحالية، تواصل مباشرة مع 360 Auto Wash عبر WhatsApp أو الهاتف.',
+        },
+      ],
+      breadcrumbs: [
+        { name: 'الرئيسية', url: siteUrl + '/' },
+        { name: '360 Auto Wash', url: siteUrl + '/clients/360autowash' },
+      ],
+    };
+  }
+
   // Dynamic service x industry landing pages
   const serviceIndustryPage = findServiceIndustryPageByPath(path);
   if (serviceIndustryPage) {
@@ -547,6 +584,27 @@ export function generateJsonLd(seo: PageSEO): any {
       }
     };
     return faqSchema ? [breadcrumbSchema, serviceSchema, faqSchema] : [breadcrumbSchema, serviceSchema];
+  }
+
+  if (seo.pathname === '/clients/360autowash') {
+    const autoWashServiceSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      'name': 'غسيل سيارات متنقل – 360 Auto Wash',
+      'description': seo.description,
+      'url': seo.canonical,
+      'provider': {
+        '@type': 'Organization',
+        'name': '360 Auto Wash',
+        'telephone': '+96567794155'
+      },
+      'serviceType': 'Mobile car wash',
+      'areaServed': {
+        '@type': 'Country',
+        'name': 'Kuwait'
+      }
+    };
+    return faqSchema ? [breadcrumbSchema, autoWashServiceSchema, faqSchema] : [breadcrumbSchema, autoWashServiceSchema];
   }
 
   if (seo.pathname.startsWith('/blog/')) {
