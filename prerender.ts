@@ -105,6 +105,7 @@ const locationRoutes = siteConfig.locations.map(l => `/locations/${l.id}`);
 const areaRoutes = areaData.map(getAreaPath);
 const blogRoutes = commercialArticles.map(b => `/blog/${b.id}`);
 const caseStudyRoutes = caseStudyPages.map(study => `/case-studies/${study.id}`);
+const clientRoutes = ['/clients/360autowash'];
 
 const allRoutes = [
   ...staticRoutes,
@@ -114,7 +115,8 @@ const allRoutes = [
   ...locationRoutes,
   ...areaRoutes,
   ...blogRoutes,
-  ...caseStudyRoutes
+  ...caseStudyRoutes,
+  ...clientRoutes
 ];
 
 console.log(`Starting pre-rendering for ${allRoutes.length} routes...`);

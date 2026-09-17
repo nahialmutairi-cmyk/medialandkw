@@ -23,6 +23,7 @@ import { Contact } from './pages/Contact';
 import { RequestQuote } from './pages/RequestQuote';
 import { LegalPages } from './pages/LegalPages';
 import { ClientPortal } from './components/ClientPortal';
+import { Client360AutoWash } from './pages/Client360AutoWash';
 
 export function AppContent() {
   return (
@@ -54,6 +55,10 @@ export function AppContent() {
         {/* Marketing Blog & Subpages */}
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDetail />} />
+
+        {/* Client Landing Pages */}
+        <Route path="/clients/360autowash" element={<Client360AutoWash />} />
+        <Route path="/clients/360autowash/" element={<Client360AutoWash />} />
         
         {/* Legal Compliance */}
         <Route path="/privacy-policy" element={<LegalPages />} />
