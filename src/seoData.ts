@@ -3,6 +3,7 @@ import { findServiceIndustryPageByPath } from './serviceIndustryData';
 import { findAreaByPath } from './areaData';
 import { findCommercialArticle } from './commercialContent';
 import { findCaseStudy } from './caseStudyData';
+import { findClientLandingByPath } from './clientLandingData';
 import { toTrailingSlashUrl, withUrlFragment } from './url';
 
 export interface PageSEO {
@@ -281,6 +282,23 @@ function getSeoForPathnameRaw(pathname: string): PageSEO {
       breadcrumbs: [
         { name: 'الرئيسية', url: siteUrl + '/' },
         { name: '360 Auto Wash', url: siteUrl + '/clients/360autowash' },
+      ],
+    };
+  }
+
+  const clientLanding = findClientLandingByPath(path);
+  if (clientLanding) {
+    return {
+      pathname: clientLanding.path,
+      title: clientLanding.title,
+      description: clientLanding.description,
+      h1: clientLanding.h1,
+      canonical: siteUrl + clientLanding.path,
+      schemaType: 'Service',
+      faq: clientLanding.faq,
+      breadcrumbs: [
+        { name: 'الرئيسية', url: siteUrl + '/' },
+        { name: clientLanding.brand, url: siteUrl + clientLanding.path },
       ],
     };
   }
@@ -605,6 +623,28 @@ export function generateJsonLd(seo: PageSEO): any {
       }
     };
     return faqSchema ? [breadcrumbSchema, autoWashServiceSchema, faqSchema] : [breadcrumbSchema, autoWashServiceSchema];
+  }
+
+  const clientLanding = findClientLandingByPath(seo.pathname);
+  if (clientLanding) {
+    const clientServiceSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      'name': clientLanding.h1,
+      'description': seo.description,
+      'url': seo.canonical,
+      'provider': {
+        '@type': 'Organization',
+        'name': clientLanding.brand,
+        ...(clientLanding.phoneHref ? { 'telephone': clientLanding.phoneHref.replace('tel:', '') } : {})
+      },
+      'serviceType': clientLanding.serviceType,
+      'areaServed': {
+        '@type': 'Country',
+        'name': 'Kuwait'
+      }
+    };
+    return faqSchema ? [breadcrumbSchema, clientServiceSchema, faqSchema] : [breadcrumbSchema, clientServiceSchema];
   }
 
   if (seo.pathname.startsWith('/blog/')) {

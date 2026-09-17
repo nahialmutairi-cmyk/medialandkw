@@ -9,7 +9,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
-  const isStandaloneClientLanding = pathname === '/clients/360autowash' || pathname === '/clients/360autowash/';
+  const isStandaloneClientLanding = pathname.startsWith('/clients/');
 
   // Scroll to top and dynamically update SEO metadata on page change
   useEffect(() => {

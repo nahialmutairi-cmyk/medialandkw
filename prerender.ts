@@ -10,6 +10,7 @@ import { getServiceIndustryPath, serviceIndustryPages } from './src/serviceIndus
 import { areaData, getAreaPath } from './src/areaData';
 import { commercialArticles } from './src/commercialContent';
 import { caseStudyPages } from './src/caseStudyData';
+import { clientLandings } from './src/clientLandingData';
 import { normalizeInternalHref, toTrailingSlashUrl } from './src/url';
 
 // Mock browser environment for Server-Side Rendering
@@ -105,7 +106,7 @@ const locationRoutes = siteConfig.locations.map(l => `/locations/${l.id}`);
 const areaRoutes = areaData.map(getAreaPath);
 const blogRoutes = commercialArticles.map(b => `/blog/${b.id}`);
 const caseStudyRoutes = caseStudyPages.map(study => `/case-studies/${study.id}`);
-const clientRoutes = ['/clients/360autowash'];
+const clientRoutes = ['/clients/360autowash', ...clientLandings.map((client) => client.path)];
 
 const allRoutes = [
   ...staticRoutes,
