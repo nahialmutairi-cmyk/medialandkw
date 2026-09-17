@@ -83,7 +83,7 @@ for (const file of htmlFiles) {
   }
 }
 
-if (sitemapUrls.length !== 96) errors.push(`sitemap URL count is ${sitemapUrls.length}, expected 96`);
+if (sitemapUrls.length !== 100) errors.push(`sitemap URL count is ${sitemapUrls.length}, expected 100`);
 sitemapUrls.forEach((url) => {
   const pathname = new URL(url).pathname;
   if (!url.endsWith('/')) errors.push(`sitemap URL is not final: ${url}`);

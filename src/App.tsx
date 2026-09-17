@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 // Layout Container
@@ -24,6 +25,8 @@ import { RequestQuote } from './pages/RequestQuote';
 import { LegalPages } from './pages/LegalPages';
 import { ClientPortal } from './components/ClientPortal';
 import { Client360AutoWash } from './pages/Client360AutoWash';
+import { ClientLandingPage } from './pages/ClientLandingPage';
+import { clientLandings } from './clientLandingData';
 
 export function AppContent() {
   return (
@@ -59,6 +62,12 @@ export function AppContent() {
         {/* Client Landing Pages */}
         <Route path="/clients/360autowash" element={<Client360AutoWash />} />
         <Route path="/clients/360autowash/" element={<Client360AutoWash />} />
+        {clientLandings.map((client) => (
+          <Fragment key={client.id}>
+            <Route path={client.path} element={<ClientLandingPage client={client} />} />
+            <Route path={`${client.path}/`} element={<ClientLandingPage client={client} />} />
+          </Fragment>
+        ))}
         
         {/* Legal Compliance */}
         <Route path="/privacy-policy" element={<LegalPages />} />
