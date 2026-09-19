@@ -17,6 +17,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
     setMobileMenuOpen(false);
 
     try {
+      if (pathname.startsWith('/portal/')) {
+        document.title = 'بوابة Google Ads | Media Land';
+
+        let metaDesc = document.querySelector('meta[name="description"]');
+        if (!metaDesc) {
+          metaDesc = document.createElement('meta');
+          metaDesc.setAttribute('name', 'description');
+          document.head.appendChild(metaDesc);
+        }
+        metaDesc.setAttribute('content', 'بوابة خاصة غير مفهرسة لعرض مؤشرات حملة Google Ads والتحكم بالحملة للعميل المخول فقط.');
+
+        let robotsMeta = document.querySelector('meta[name="robots"]');
+        if (!robotsMeta) {
+          robotsMeta = document.createElement('meta');
+          robotsMeta.setAttribute('name', 'robots');
+          document.head.appendChild(robotsMeta);
+        }
+        robotsMeta.setAttribute('content', 'noindex,nofollow');
+        return;
+      }
+
       const seo = getSeoForPathname(pathname);
       
       // Update Title
