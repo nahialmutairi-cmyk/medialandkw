@@ -12,6 +12,14 @@ const clientConfigs = {
     tokenHashEnv: 'GOOGLE_ADS_FAHAD_PORTAL_TOKEN_SHA256',
     lookerEnv: 'LOOKER_STUDIO_FAHAD_EMBED_URL',
   },
+  'lawyer-aisha-alawadhi': {
+    name: 'المحامية عايشة العوضي',
+    clientKey: 'lawyer-aisha-alawadhi',
+    customerIdEnv: 'GOOGLE_ADS_AISHA_CUSTOMER_ID',
+    campaignIdEnv: 'GOOGLE_ADS_AISHA_CAMPAIGN_ID',
+    tokenHashEnv: 'GOOGLE_ADS_AISHA_PORTAL_TOKEN_SHA256',
+    lookerEnv: 'LOOKER_STUDIO_AISHA_EMBED_URL',
+  },
 };
 
 function json(statusCode, body) {
@@ -98,7 +106,7 @@ async function googleAdsSearch({ accessToken, customerId, query }) {
   return payload.results || [];
 }
 
-async function getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange, startDate, endDate }) {
+async function getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange, startDate, endDate, fallbackName }) {
   const range = allowedRanges.has(dateRange) ? dateRange : 'LAST_7_DAYS';
   const isCustom = dateRange === 'CUSTOM_DATE' && /^\d{4}-\d{2}-\d{2}$/.test(startDate || '') && /^\d{4}-\d{2}-\d{2}$/.test(endDate || '');
   const dateFilter = isCustom
@@ -123,7 +131,7 @@ async function getCampaignSnapshot({ accessToken, customerId, campaignId, dateRa
   const rows = await googleAdsSearch({ accessToken, customerId, query });
   const first = rows[0] || {};
   return {
-    campaignName: first.campaign?.name || 'غسيل فهد عادل',
+    campaignName: first.campaign?.name || fallbackName,
     status: first.campaign?.status || 'UNKNOWN',
     dateRange: isCustom ? 'CUSTOM_DATE' : range,
     metrics: {
@@ -227,9 +235,9 @@ export async function handler(event) {
       const action = body.action;
       if (!['ENABLE', 'PAUSE'].includes(action)) return json(400, { ok: false, message: 'Invalid action.', connected: true });
 
-      const before = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY' });
+      const before = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
       await updateCampaignStatus({ accessToken, customerId, campaignId, status: action === 'ENABLE' ? 'ENABLED' : 'PAUSED' });
-      const after = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY' });
+      const after = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
       console.info(JSON.stringify({
         client: config.name,
         action,
@@ -260,6 +268,7 @@ export async function handler(event) {
         dateRange: event.queryStringParameters?.range || 'LAST_7_DAYS',
         startDate: event.queryStringParameters?.startDate,
         endDate: event.queryStringParameters?.endDate,
+        fallbackName: config.name,
       });
 
     return json(200, {

@@ -13,6 +13,12 @@ export const clientPortalConfigs: ClientPortalConfig[] = [
     campaignLabel: 'غسيل فهد عادل',
     apiClientKey: 'fahad-car-wash',
   },
+  {
+    slug: 'lawyer-aisha-alawadhi',
+    name: 'المحامية عايشة العوضي',
+    campaignLabel: 'المحامية عايشة العوضي',
+    apiClientKey: 'lawyer-aisha-alawadhi',
+  },
 ];
 
 export function getClientPortalConfig(slug?: string): ClientPortalConfig | undefined {
