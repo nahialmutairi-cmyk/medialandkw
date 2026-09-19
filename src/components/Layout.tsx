@@ -9,7 +9,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
-  const isStandaloneClientLanding = pathname.startsWith('/clients/');
+  const isStandaloneClientLanding = pathname.startsWith('/clients/') || pathname.startsWith('/portal/');
 
   // Scroll to top and dynamically update SEO metadata on page change
   useEffect(() => {
@@ -86,13 +86,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       // Update Robots meta (noindex for request-quote and /u/* routes)
       let robotsMeta = document.querySelector('meta[name="robots"]');
-      if (pathname === '/request-quote' || pathname.startsWith('/u/')) {
+      if (pathname === '/request-quote' || pathname.startsWith('/u/') || pathname.startsWith('/portal/')) {
         if (!robotsMeta) {
           robotsMeta = document.createElement('meta');
           robotsMeta.setAttribute('name', 'robots');
           document.head.appendChild(robotsMeta);
         }
-        robotsMeta.setAttribute('content', 'noindex,follow');
+        robotsMeta.setAttribute('content', pathname.startsWith('/portal/') ? 'noindex,nofollow' : 'noindex,follow');
       } else {
         if (robotsMeta) {
           robotsMeta.remove();
