@@ -87,7 +87,7 @@ function googleAdsHeaders(accessToken) {
 }
 
 async function googleAdsSearch({ accessToken, customerId, query }) {
-  const response = await fetch(`https://googleads.googleapis.com/v17/customers/${customerId}/googleAds:search`, {
+  const response = await fetch(`https://googleads.googleapis.com/v25/customers/${customerId}/googleAds:search`, {
     method: 'POST',
     headers: googleAdsHeaders(accessToken),
     body: JSON.stringify({ query }),
@@ -156,7 +156,7 @@ function rateLimitAction(clientSlug, token) {
 }
 
 async function updateCampaignStatus({ accessToken, customerId, campaignId, status }) {
-  const response = await fetch(`https://googleads.googleapis.com/v17/customers/${customerId}/campaigns:mutate`, {
+  const response = await fetch(`https://googleads.googleapis.com/v25/customers/${customerId}/campaigns:mutate`, {
     method: 'POST',
     headers: googleAdsHeaders(accessToken),
     body: JSON.stringify({
