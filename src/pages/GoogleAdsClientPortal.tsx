@@ -98,6 +98,13 @@ export function GoogleAdsClientPortal() {
     robots.setAttribute('name', 'robots');
     robots.setAttribute('content', 'noindex,nofollow');
     if (!robots.parentNode) document.head.appendChild(robots);
+
+    document.title = `${config?.name ?? 'بوابة العميل'} | بوابة Google Ads | Media Land`;
+
+    const description = document.querySelector('meta[name="description"]') ?? document.createElement('meta');
+    description.setAttribute('name', 'description');
+    description.setAttribute('content', 'بوابة خاصة غير مفهرسة لعرض مؤشرات حملة Google Ads والتحكم بالحملة للعميل المخول فقط.');
+    if (!description.parentNode) document.head.appendChild(description);
   }, []);
 
   const effectiveName = data?.clientName ?? config?.name ?? 'بوابة العميل';
