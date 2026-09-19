@@ -25,6 +25,7 @@ import { RequestQuote } from './pages/RequestQuote';
 import { LegalPages } from './pages/LegalPages';
 import { ClientPortal } from './components/ClientPortal';
 import { Client360AutoWash } from './pages/Client360AutoWash';
+import { ClientFahadCarWash } from './pages/ClientFahadCarWash';
 import { ClientLawyerAisha } from './pages/ClientLawyerAisha';
 import { ClientLandingPage } from './pages/ClientLandingPage';
 import { clientLandings } from './clientLandingData';
@@ -63,9 +64,11 @@ export function AppContent() {
         {/* Client Landing Pages */}
         <Route path="/clients/360autowash" element={<Client360AutoWash />} />
         <Route path="/clients/360autowash/" element={<Client360AutoWash />} />
+        <Route path="/clients/fahad-car-wash" element={<ClientFahadCarWash />} />
+        <Route path="/clients/fahad-car-wash/" element={<ClientFahadCarWash />} />
         <Route path="/clients/lawyer-aisha-alawadhi" element={<ClientLawyerAisha />} />
         <Route path="/clients/lawyer-aisha-alawadhi/" element={<ClientLawyerAisha />} />
-        {clientLandings.filter((client) => client.id !== 'lawyer-aisha-alawadhi').map((client) => (
+        {clientLandings.filter((client) => !['fahad-car-wash', 'lawyer-aisha-alawadhi'].includes(client.id)).map((client) => (
           <Fragment key={client.id}>
             <Route path={client.path} element={<ClientLandingPage client={client} />} />
             <Route path={`${client.path}/`} element={<ClientLandingPage client={client} />} />
