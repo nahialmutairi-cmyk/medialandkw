@@ -265,7 +265,7 @@ export function GoogleAdsClientPortal() {
               )}
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-xs leading-6 text-white/55">
-              لا تعرض هذه البوابة التكلفة أو الميزانية أو CPC أو أي بيانات مالية. الوصول مخصص للحملة المرتبطة بهذا الرابط فقط.
+              لا تعرض هذه البوابة أي بيانات مالية تفصيلية. الوصول مخصص للحملة المرتبطة بهذا الرابط فقط.
             </div>
           </aside>
         </section>
