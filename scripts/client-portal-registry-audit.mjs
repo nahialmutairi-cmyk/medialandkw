@@ -1,4 +1,4 @@
-import { activityEventTypes, kuwaitTimestamp } from '../netlify/functions/_shared/client-portal-activity.mjs';
+import { activityEventTypes, getDeviceType, getRequestIp, kuwaitTimestamp } from '../netlify/functions/_shared/client-portal-activity.mjs';
 import { activeClientPortals, buildServerClientConfigs, clientPortalRegistry } from '../clientPortalRegistry.mjs';
 
 const requiredEvents = ['PORTAL_VISIT', 'CAMPAIGN_ENABLED', 'CAMPAIGN_PAUSED'];
@@ -41,6 +41,19 @@ if (!testConfigs['test-client-auto-registration']) {
 const timestamp = kuwaitTimestamp(new Date('2026-09-20T16:32:47.000Z'));
 if (!timestamp.includes('19:32:47')) {
   errors.push(`Kuwait timestamp does not include expected seconds/time: ${timestamp}`);
+}
+
+const testEvent = {
+  headers: {
+    'x-forwarded-for': '203.0.113.10, 10.0.0.1',
+    'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148',
+  },
+};
+if (getRequestIp(testEvent) !== '203.0.113.10') {
+  errors.push('Visit IP extraction failed.');
+}
+if (getDeviceType(testEvent) !== 'Mobile') {
+  errors.push('Visit device type detection failed.');
 }
 
 if (errors.length) {

@@ -40,6 +40,21 @@ export function kuwaitTimestamp(date = new Date()) {
   }).format(date);
 }
 
+export function getRequestIp(event) {
+  const forwarded = event.headers?.['x-forwarded-for'] || event.headers?.['X-Forwarded-For'] || '';
+  const netlifyIp = event.headers?.['x-nf-client-connection-ip'] || event.headers?.['X-Nf-Client-Connection-Ip'] || '';
+  const candidate = forwarded.split(',')[0]?.trim() || netlifyIp.trim();
+  return candidate || null;
+}
+
+export function getDeviceType(event) {
+  const userAgent = event.headers?.['user-agent'] || event.headers?.['User-Agent'] || '';
+  if (/ipad|tablet|kindle|silk/i.test(userAgent)) return 'Tablet';
+  if (/mobi|iphone|android.*mobile|windows phone/i.test(userAgent)) return 'Mobile';
+  if (userAgent) return 'Desktop';
+  return 'Unknown';
+}
+
 function activityKey(clientSlug) {
   return `${clientSlug}.json`;
 }
@@ -49,7 +64,7 @@ export async function readClientActivity(clientSlug) {
   return Array.isArray(payload) ? payload : [];
 }
 
-export async function recordClientActivity({ clientSlug, clientName, campaignId, eventType }) {
+export async function recordClientActivity({ clientSlug, clientName, campaignId, eventType, ipAddress = null, deviceType = null }) {
   if (!activityEventTypes.includes(eventType)) return { recorded: false };
 
   const now = new Date();
@@ -69,6 +84,8 @@ export async function recordClientActivity({ clientSlug, clientName, campaignId,
     eventType,
     occurredAt: now.toISOString(),
     occurredAtKuwait: kuwaitTimestamp(now),
+    ipAddress: eventType === 'PORTAL_VISIT' ? ipAddress : null,
+    deviceType: eventType === 'PORTAL_VISIT' ? deviceType : null,
   };
 
   await store().setJSON(activityKey(clientSlug), [event, ...events].slice(0, maxEventsPerClient));

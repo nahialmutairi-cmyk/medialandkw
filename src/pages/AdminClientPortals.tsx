@@ -8,6 +8,8 @@ type ActivityEvent = {
   eventType: EventType;
   occurredAt: string;
   occurredAtKuwait: string;
+  ipAddress?: string | null;
+  deviceType?: string | null;
 };
 
 type ClientPortalMonitor = {
@@ -69,6 +71,13 @@ function eventIcon(type?: string | null) {
   if (type === 'CAMPAIGN_ENABLED') return '🟢';
   if (type === 'CAMPAIGN_PAUSED') return '🔴';
   return '';
+}
+
+function deviceLabel(deviceType?: string | null) {
+  if (deviceType === 'Mobile') return 'جوال';
+  if (deviceType === 'Tablet') return 'تابلت';
+  if (deviceType === 'Desktop') return 'كمبيوتر';
+  return deviceType || 'غير معروف';
 }
 
 function statusText(status: string) {
@@ -256,6 +265,12 @@ export function AdminClientPortals() {
                 <div key={event.id} className="border-b border-white/10 pb-4 last:border-0">
                   <p className="font-mono text-sm text-white/70">{formatKuwait(event.occurredAt)}</p>
                   <p className="mt-1 text-sm font-bold">{eventIcon(event.eventType)} {eventLabel(event.eventType)}</p>
+                  {event.eventType === 'PORTAL_VISIT' && (
+                    <div className="mt-2 grid gap-1 text-xs text-white/45">
+                      <p>نوع الجهاز: <span className="text-white/70">{deviceLabel(event.deviceType)}</span></p>
+                      <p>IP: <span className="font-mono text-white/70" dir="ltr">{event.ipAddress || 'غير متاح'}</span></p>
+                    </div>
+                  )}
                 </div>
               ))}
               {!events.length && <p className="rounded-2xl border border-dashed border-white/15 p-6 text-center text-sm text-white/45">لا يوجد نشاط محفوظ لهذا الفلتر.</p>}

@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { connectActivityStore, recordClientActivity } from './_shared/client-portal-activity.mjs';
+import { connectActivityStore, getDeviceType, getRequestIp, recordClientActivity } from './_shared/client-portal-activity.mjs';
 import { buildServerClientConfigs } from '../../clientPortalRegistry.mjs';
 
 const allowedRanges = new Set(['TODAY', 'LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH']);
@@ -265,7 +265,14 @@ export async function handler(event) {
         endDate: event.queryStringParameters?.endDate,
         fallbackName: config.name,
       });
-      await recordClientActivity({ clientSlug, clientName: config.name, campaignId, eventType: 'PORTAL_VISIT' });
+      await recordClientActivity({
+        clientSlug,
+        clientName: config.name,
+        campaignId,
+        eventType: 'PORTAL_VISIT',
+        ipAddress: getRequestIp(event),
+        deviceType: getDeviceType(event),
+      });
 
     return json(200, {
       ok: true,
