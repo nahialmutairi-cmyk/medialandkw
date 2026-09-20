@@ -235,6 +235,7 @@ Disallow: /admin
 Disallow: /dashboard
 Disallow: /login
 Disallow: /u/
+Disallow: /portal/
 
 Sitemap: ${siteConfig.siteUrl}/sitemap.xml
 `;

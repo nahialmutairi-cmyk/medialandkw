@@ -1,9 +1,10 @@
 import crypto from 'node:crypto';
+import { recordClientActivity } from './_shared/client-portal-activity.mjs';
 
 const allowedRanges = new Set(['TODAY', 'LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH']);
 const actionAttempts = new Map();
 
-const clientConfigs = {
+export const clientConfigs = {
   'ghaseel-fahad-adel': {
     name: 'غسيل فهد عادل',
     clientKey: 'fahad-car-wash',
@@ -61,7 +62,7 @@ function requireEnv(name) {
   return value;
 }
 
-async function refreshAccessToken() {
+export async function refreshAccessToken() {
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -106,7 +107,7 @@ async function googleAdsSearch({ accessToken, customerId, query }) {
   return payload.results || [];
 }
 
-async function getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange, startDate, endDate, fallbackName }) {
+export async function getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange, startDate, endDate, fallbackName }) {
   const range = allowedRanges.has(dateRange) ? dateRange : 'LAST_7_DAYS';
   const isCustom = dateRange === 'CUSTOM_DATE' && /^\d{4}-\d{2}-\d{2}$/.test(startDate || '') && /^\d{4}-\d{2}-\d{2}$/.test(endDate || '');
   const dateFilter = isCustom
@@ -238,13 +239,22 @@ export async function handler(event) {
       const before = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
       await updateCampaignStatus({ accessToken, customerId, campaignId, status: action === 'ENABLE' ? 'ENABLED' : 'PAUSED' });
       const after = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
+      const confirmedStatus = action === 'ENABLE' ? 'ENABLED' : 'PAUSED';
+      if (after.status === confirmedStatus) {
+        await recordClientActivity({
+          clientSlug,
+          clientName: config.name,
+          campaignId,
+          eventType: action === 'ENABLE' ? 'CAMPAIGN_ENABLED' : 'CAMPAIGN_PAUSED',
+        });
+      }
       console.info(JSON.stringify({
         client: config.name,
         action,
         previousStatus: before.status,
         newStatus: after.status,
         timestamp: new Date().toISOString(),
-        success: true,
+        success: after.status === confirmedStatus,
       }));
 
       return json(200, {
@@ -270,6 +280,7 @@ export async function handler(event) {
         endDate: event.queryStringParameters?.endDate,
         fallbackName: config.name,
       });
+      await recordClientActivity({ clientSlug, clientName: config.name, campaignId, eventType: 'PORTAL_VISIT' });
 
     return json(200, {
       ok: true,

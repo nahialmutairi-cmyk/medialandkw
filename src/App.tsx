@@ -29,6 +29,7 @@ import { ClientFahadCarWash } from './pages/ClientFahadCarWash';
 import { ClientLawyerAisha } from './pages/ClientLawyerAisha';
 import { ClientLandingPage } from './pages/ClientLandingPage';
 import { GoogleAdsClientPortal } from './pages/GoogleAdsClientPortal';
+import { AdminClientPortals } from './pages/AdminClientPortals';
 import { clientLandings } from './clientLandingData';
 
 export function AppContent() {
@@ -90,6 +91,8 @@ export function AppContent() {
         <Route path="/u/:clientId" element={<ClientPortal />} />
         <Route path="/portal/:clientSlug/:token" element={<GoogleAdsClientPortal />} />
         <Route path="/portal/:clientSlug/:token/" element={<GoogleAdsClientPortal />} />
+        <Route path="/admin/client-portals" element={<AdminClientPortals />} />
+        <Route path="/admin/client-portals/" element={<AdminClientPortals />} />
 
         {/* Catch-all Fallback */}
         <Route path="*" element={<Home />} />

@@ -9,7 +9,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
-  const isStandaloneClientLanding = pathname.startsWith('/clients/') || pathname.startsWith('/portal/');
+  const isStandaloneClientLanding = pathname.startsWith('/clients/') || pathname.startsWith('/portal/') || pathname.startsWith('/admin/');
 
   // Scroll to top and dynamically update SEO metadata on page change
   useEffect(() => {
@@ -17,8 +17,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
     setMobileMenuOpen(false);
 
     try {
-      if (pathname.startsWith('/portal/')) {
-        document.title = 'بوابة Google Ads | Media Land';
+      if (pathname.startsWith('/portal/') || pathname.startsWith('/admin/')) {
+        document.title = pathname.startsWith('/admin/') ? 'بوابات عملاء Google Ads | Media Land' : 'بوابة Google Ads | Media Land';
 
         let metaDesc = document.querySelector('meta[name="description"]');
         if (!metaDesc) {
@@ -26,7 +26,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           metaDesc.setAttribute('name', 'description');
           document.head.appendChild(metaDesc);
         }
-        metaDesc.setAttribute('content', 'بوابة خاصة غير مفهرسة لعرض مؤشرات حملة Google Ads والتحكم بالحملة للعميل المخول فقط.');
+        metaDesc.setAttribute('content', pathname.startsWith('/admin/') ? 'لوحة مراقبة داخلية خاصة وغير مفهرسة لبوابات عملاء Google Ads.' : 'بوابة خاصة غير مفهرسة لعرض مؤشرات حملة Google Ads والتحكم بالحملة للعميل المخول فقط.');
 
         let robotsMeta = document.querySelector('meta[name="robots"]');
         if (!robotsMeta) {
