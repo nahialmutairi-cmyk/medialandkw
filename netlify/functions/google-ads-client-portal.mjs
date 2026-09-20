@@ -1,27 +1,11 @@
 import crypto from 'node:crypto';
 import { connectActivityStore, recordClientActivity } from './_shared/client-portal-activity.mjs';
+import { buildServerClientConfigs } from '../../clientPortalRegistry.mjs';
 
 const allowedRanges = new Set(['TODAY', 'LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH']);
 const actionAttempts = new Map();
 
-export const clientConfigs = {
-  'ghaseel-fahad-adel': {
-    name: 'غسيل فهد عادل',
-    clientKey: 'fahad-car-wash',
-    customerIdEnv: 'GOOGLE_ADS_FAHAD_CUSTOMER_ID',
-    campaignIdEnv: 'GOOGLE_ADS_FAHAD_CAMPAIGN_ID',
-    tokenHashEnv: 'GOOGLE_ADS_FAHAD_PORTAL_TOKEN_SHA256',
-    lookerEnv: 'LOOKER_STUDIO_FAHAD_EMBED_URL',
-  },
-  'lawyer-aisha-alawadhi': {
-    name: 'المحامية عايشة العوضي',
-    clientKey: 'lawyer-aisha-alawadhi',
-    customerIdEnv: 'GOOGLE_ADS_AISHA_CUSTOMER_ID',
-    campaignIdEnv: 'GOOGLE_ADS_AISHA_CAMPAIGN_ID',
-    tokenHashEnv: 'GOOGLE_ADS_AISHA_PORTAL_TOKEN_SHA256',
-    lookerEnv: 'LOOKER_STUDIO_AISHA_EMBED_URL',
-  },
-};
+export const clientConfigs = buildServerClientConfigs();
 
 function json(statusCode, body) {
   return {

@@ -1,3 +1,5 @@
+import { activeClientPortals } from '../clientPortalRegistry.mjs';
+
 export type ClientPortalConfig = {
   slug: string;
   name: string;
@@ -6,20 +8,12 @@ export type ClientPortalConfig = {
   lookerEmbedUrl?: string;
 };
 
-export const clientPortalConfigs: ClientPortalConfig[] = [
-  {
-    slug: 'ghaseel-fahad-adel',
-    name: 'غسيل فهد عادل',
-    campaignLabel: 'غسيل فهد عادل',
-    apiClientKey: 'fahad-car-wash',
-  },
-  {
-    slug: 'lawyer-aisha-alawadhi',
-    name: 'المحامية عايشة العوضي',
-    campaignLabel: 'المحامية عايشة العوضي',
-    apiClientKey: 'lawyer-aisha-alawadhi',
-  },
-];
+export const clientPortalConfigs: ClientPortalConfig[] = activeClientPortals().map((client) => ({
+  slug: client.slug,
+  name: client.name,
+  campaignLabel: client.campaignLabel,
+  apiClientKey: client.clientKey,
+}));
 
 export function getClientPortalConfig(slug?: string): ClientPortalConfig | undefined {
   return clientPortalConfigs.find((client) => client.slug === slug);
