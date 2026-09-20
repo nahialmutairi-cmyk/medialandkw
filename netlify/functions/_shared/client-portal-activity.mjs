@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { getStore } from '@netlify/blobs';
+import { connectLambda, getStore } from '@netlify/blobs';
 
 export const activityEventTypes = ['PORTAL_VISIT', 'CAMPAIGN_ENABLED', 'CAMPAIGN_PAUSED'];
 const maxEventsPerClient = 1000;
@@ -7,6 +7,10 @@ const visitDedupeMs = 60_000;
 
 function store() {
   return getStore('client-portal-activity');
+}
+
+export function connectActivityStore(event) {
+  connectLambda(event);
 }
 
 export function sha256(value) {

@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { recordClientActivity } from './_shared/client-portal-activity.mjs';
+import { connectActivityStore, recordClientActivity } from './_shared/client-portal-activity.mjs';
 
 const allowedRanges = new Set(['TODAY', 'LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH']);
 const actionAttempts = new Map();
@@ -206,6 +206,7 @@ function validateClient(clientSlug, token) {
 }
 
 export async function handler(event) {
+  connectActivityStore(event);
   const { clientSlug, token } = parsePath(event);
   const validation = validateClient(clientSlug, token);
   if (validation.error) return validation.error;

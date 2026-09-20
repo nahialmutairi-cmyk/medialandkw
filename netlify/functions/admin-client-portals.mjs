@@ -1,4 +1,4 @@
-import { activityEventTypes, isAdminAuthorized, readAllActivity } from './_shared/client-portal-activity.mjs';
+import { activityEventTypes, connectActivityStore, isAdminAuthorized, readAllActivity } from './_shared/client-portal-activity.mjs';
 import { clientConfigs, getCampaignSnapshot, refreshAccessToken } from './google-ads-client-portal.mjs';
 
 function json(statusCode, body) {
@@ -42,6 +42,7 @@ async function safeSnapshot(config, accessToken) {
 export async function handler(event) {
   if (event.httpMethod !== 'GET') return json(405, { ok: false, message: 'Method not allowed.' });
   if (!isAdminAuthorized(event)) return json(401, { ok: false, message: 'Unauthorized.' });
+  connectActivityStore(event);
 
   const activities = await readAllActivity(clientConfigs);
   let accessToken = null;
