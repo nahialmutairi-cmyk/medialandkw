@@ -6,7 +6,7 @@ const maxEventsPerClient = 1000;
 const visitDedupeMs = 60_000;
 
 function store() {
-  return getStore({ name: 'client-portal-activity', consistency: 'strong' });
+  return getStore('client-portal-activity');
 }
 
 export function sha256(value) {
