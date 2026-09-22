@@ -225,14 +225,12 @@ export async function handler(event) {
       await updateCampaignStatus({ accessToken, customerId, campaignId, status: action === 'ENABLE' ? 'ENABLED' : 'PAUSED' });
       const after = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
       const confirmedStatus = action === 'ENABLE' ? 'ENABLED' : 'PAUSED';
-      if (after.status === confirmedStatus) {
-        await recordClientActivity({
-          clientSlug,
-          clientName: config.name,
-          campaignId,
-          eventType: action === 'ENABLE' ? 'CAMPAIGN_ENABLED' : 'CAMPAIGN_PAUSED',
-        });
-      }
+      await recordClientActivity({
+        clientSlug,
+        clientName: config.name,
+        campaignId,
+        eventType: action === 'ENABLE' ? 'CAMPAIGN_ENABLED' : 'CAMPAIGN_PAUSED',
+      });
       console.info(JSON.stringify({
         client: config.name,
         action,
