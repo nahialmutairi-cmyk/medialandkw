@@ -83,7 +83,19 @@ for (const file of htmlFiles) {
   }
 }
 
-if (sitemapUrls.length !== 100) errors.push(`sitemap URL count is ${sitemapUrls.length}, expected 100`);
+const expectedSitemapUrlCount = [...routes].filter((route) => {
+  return !(
+    route.includes('/admin') ||
+    route.includes('/dashboard') ||
+    route.includes('/login') ||
+    route.startsWith('/u/') ||
+    route === '/request-quote'
+  );
+}).length;
+
+if (sitemapUrls.length !== expectedSitemapUrlCount) {
+  errors.push(`sitemap URL count is ${sitemapUrls.length}, expected ${expectedSitemapUrlCount}`);
+}
 sitemapUrls.forEach((url) => {
   const pathname = new URL(url).pathname;
   if (!url.endsWith('/')) errors.push(`sitemap URL is not final: ${url}`);
