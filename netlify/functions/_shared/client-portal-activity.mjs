@@ -59,9 +59,34 @@ function activityKey(clientSlug) {
   return `${clientSlug}.json`;
 }
 
+function activityEventPrefix(clientSlug) {
+  return `${clientSlug}/events/`;
+}
+
+function activityEventKey(clientSlug, event) {
+  return `${activityEventPrefix(clientSlug)}${event.occurredAt}-${event.id}.json`;
+}
+
 export async function readClientActivity(clientSlug) {
   const payload = await store().get(activityKey(clientSlug), { type: 'json' });
-  return Array.isArray(payload) ? payload : [];
+  const legacyEvents = Array.isArray(payload) ? payload : [];
+  let eventBlobs = [];
+
+  try {
+    const listed = await store().list({ prefix: activityEventPrefix(clientSlug) });
+    eventBlobs = await Promise.all(
+      (listed.blobs || []).map(async (blob) => store().get(blob.key, { type: 'json' }))
+    );
+  } catch {
+    eventBlobs = [];
+  }
+
+  const byId = new Map();
+  [...legacyEvents, ...eventBlobs].forEach((event) => {
+    if (event?.id) byId.set(event.id, event);
+  });
+
+  return [...byId.values()].sort((left, right) => Date.parse(right.occurredAt) - Date.parse(left.occurredAt));
 }
 
 export async function recordClientActivity({ clientSlug, clientName, campaignId, eventType, ipAddress = null, deviceType = null }) {
@@ -88,7 +113,10 @@ export async function recordClientActivity({ clientSlug, clientName, campaignId,
     deviceType: eventType === 'PORTAL_VISIT' ? deviceType : null,
   };
 
-  await store().setJSON(activityKey(clientSlug), [event, ...events].slice(0, maxEventsPerClient));
+  await Promise.all([
+    store().setJSON(activityEventKey(clientSlug, event), event),
+    store().setJSON(activityKey(clientSlug), [event, ...events].slice(0, maxEventsPerClient)),
+  ]);
   return { recorded: true, event };
 }
 
