@@ -21,6 +21,17 @@ export const clientPortalRegistry = [
     tokenHashEnv: 'GOOGLE_ADS_AISHA_PORTAL_TOKEN_SHA256',
     lookerEnv: 'LOOKER_STUDIO_AISHA_EMBED_URL',
   },
+  {
+    slug: 'lawyer-yousef-alabdali',
+    name: 'المحامي يوسف العبدلي',
+    campaignLabel: 'المحامي يوسف العبدلي',
+    clientKey: 'lawyer-yousef-alabdali',
+    status: 'ACTIVE',
+    customerIdEnv: 'GOOGLE_ADS_YOUSEF_CUSTOMER_ID',
+    campaignIdEnv: 'GOOGLE_ADS_YOUSEF_CAMPAIGN_ID',
+    tokenHashEnv: 'GOOGLE_ADS_YOUSEF_PORTAL_TOKEN_SHA256',
+    lookerEnv: 'LOOKER_STUDIO_YOUSEF_EMBED_URL',
+  },
 ];
 
 export function activeClientPortals(registry = clientPortalRegistry) {
