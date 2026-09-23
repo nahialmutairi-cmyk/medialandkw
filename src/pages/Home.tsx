@@ -6,7 +6,20 @@ import { siteConfig } from '../siteConfig';
 import { PlatformsBar } from '../components/PlatformIcons';
 
 export function Home() {
-  const heroWords = ["شركة", "دعاية", "وإعلان", "وتسويق", "رقمي", "في", "الكويت"];
+  const heroWords = ["شركة", "دعاية", "وإعلان", "في", "الكويت"];
+  const featuredServiceIds = [
+    'paid-advertising',
+    'graphic-design',
+    'branding',
+    'commercial-video',
+    'website-design',
+    'content-creation',
+    'digital-marketing',
+    'product-photography'
+  ];
+  const featuredServices = featuredServiceIds
+    .map((serviceId) => siteConfig.services.find((service) => service.id === serviceId))
+    .filter((service): service is typeof siteConfig.services[number] => Boolean(service));
 
   return (
     <div className="space-y-24 pb-20">
@@ -45,15 +58,15 @@ export function Home() {
           </h1>
 
           <p className="text-[#F0F4FF]/80 leading-relaxed text-sm sm:text-base max-w-2xl mx-auto">
-            مرحباً بك في وكالة ميديا لاند الإعلامية. نوفر باقات تسويقية مبتكرة، إدارة حسابات احترافية، إنتاج فيديو وتصوير سينمائي، وتطوير مواقع ومتاجر رقمية متكاملة لتحسين حضورك وفرص وصولك في السوق الكويتي.
+            ميديا لاند شركة دعاية وإعلان في الكويت تساعد الشركات على بناء حضور واضح عبر تصميم الإعلانات، الهوية البصرية، إنتاج الفيديو التجاري، تصميم المواقع، وإدارة الحملات الرقمية بطريقة مترابطة.
           </p>
 
           <h2 lang="en" className="text-sm sm:text-base font-bold tracking-wide text-white">
-            Media Land — Google Ads Reporting Portal
+            Media Land — Advertising Services and Client Reporting
           </h2>
 
           <p lang="en" className="text-[#F0F4FF]/70 leading-relaxed text-xs sm:text-sm max-w-2xl mx-auto">
-            Media Land provides advertising services and a secure client reporting portal for authorized users to view assigned Google Ads performance data. The reporting portal is read-only and never changes Google Ads campaigns, budgets, ads, keywords, or account settings.
+            Media Land provides advertising services in Kuwait and a secure client reporting portal for authorized users to view assigned Google Ads performance data. The reporting portal is read-only and does not expose billing or financial data.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -69,7 +82,7 @@ export function Home() {
               to="/services"
               className="bg-white/5 hover:bg-white/10 border border-white/5 text-gray-300 font-bold px-8 py-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-sm"
             >
-              <span>استعرض خدماتنا الـ 16</span>
+              <span>استعرض خدماتنا</span>
               <ChevronRight className="w-4 h-4 scale-x-[-1]" />
             </Link>
           </div>
@@ -84,10 +97,10 @@ export function Home() {
           <div className="lg:col-span-7 space-y-6">
             <span className="text-xs uppercase text-[#0055FF] tracking-widest block font-bold">من نحن - ميديا لاند الكويت</span>
             <ClipWipeTitle className="text-3xl sm:text-4xl font-black text-white leading-tight">
-              نهندس هويتك الرقمية <span className="text-[#FF3E55]">ونقود انتشارك التسويقي</span>
+              وكالة دعاية وإعلان <span className="text-[#FF3E55]">تربط الفكرة بالتنفيذ</span>
             </ClipWipeTitle>
             <p className="text-gray-300 text-sm sm:text-base leading-relaxed text-justify">
-              نحن في وكالة ميديا لاند للدعاية والإعلان لا نطلق مجرد حملات، بل نصيغ خططاً تسويقية 360 درجة مبنية على سلوك المستهلك الكويتي وقوته الشرائية. ندمج الفن البصري الراقي بالتصوير الاحترافي وتطوير البرمجيات لنقدم لشركتك حضوراً تفاعلياً منظماً يقوي صورتك في السوق.
+              نعمل على تنظيم عناصر الدعاية للشركات في الكويت من الفكرة والرسالة إلى التصميم والفيديو والموقع والحملة. الهدف هو أن تظهر علامتك بصورة مفهومة ومتناسقة في الإعلان، صفحات الهبوط، والمنصات التي يستخدمها جمهورك.
             </p>
             <div className="grid grid-cols-2 gap-4 pt-4">
               <div className="flex items-start gap-3 bg-[#12141E] p-4 rounded-xl border border-white/5">
@@ -100,8 +113,8 @@ export function Home() {
               <div className="flex items-start gap-3 bg-[#12141E] p-4 rounded-xl border border-white/5">
                 <ShieldCheck className="w-5 h-5 text-[#0055FF] mt-1" />
                 <div>
-                  <h4 className="text-sm font-bold text-white">التزام تام بالنتائج</h4>
-                  <p className="text-xs text-gray-400 mt-1">تقارير دورية شفافة لقياس المبيعات والاتصالات.</p>
+                  <h4 className="text-sm font-bold text-white">وضوح في القياس</h4>
+                  <p className="text-xs text-gray-400 mt-1">تقارير دورية تساعدك على فهم الاتصالات والتفاعل.</p>
                 </div>
               </div>
             </div>
@@ -125,20 +138,20 @@ export function Home() {
         </div>
       </section>
 
-      {/* CORE 16 SERVICES PREVIEW */}
+      {/* CORE SERVICES PREVIEW */}
       <section className="py-12 max-w-7xl mx-auto px-6 sm:px-10">
         <div className="text-center space-y-4 mb-16">
-          <span className="text-xs uppercase text-[#FF3E55] tracking-widest block font-bold">خدماتنا الثمانية عشر</span>
+          <span className="text-xs uppercase text-[#FF3E55] tracking-widest block font-bold">خدمات الدعاية والإبداع</span>
           <ClipWipeTitle className="text-3xl sm:text-5xl font-black text-white">
-            حلول تسويق وبرمجة وتصوير <span className="text-[#0055FF]">تأخذك للصدارة</span>
+            خدمات مترابطة <span className="text-[#0055FF]">لبناء حضور إعلاني واضح</span>
           </ClipWipeTitle>
           <p className="text-[#F0F4FF]/70 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            نغطي كافة احتياجات مشروعك الرقمية والمطبوعة باحترافية كاملة من خلال خدماتنا المترابطة.
+            نربط بين الإعلان الممول، التصميم الجرافيكي، الهوية البصرية، الفيديو التجاري، وتصميم المواقع حتى لا تعمل كل قناة بمعزل عن الأخرى.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {siteConfig.services.slice(0, 8).map((service, idx) => (
+          {featuredServices.map((service) => (
             <div
               key={service.id}
               className="bg-[#12141E] p-6 rounded-2xl border border-white/5 flex flex-col justify-between hover:border-[#0055FF]/30 hover:-translate-y-1 transition-all shadow-xl group"
@@ -160,7 +173,7 @@ export function Home() {
             to="/services"
             className="px-6 py-3 border border-[#0055FF]/30 text-white hover:bg-[#0055FF]/10 rounded-full text-xs font-bold inline-flex items-center gap-2 transition-all"
           >
-            <span>عرض كافة خدماتنا الـ 16</span>
+            <span>عرض كافة خدماتنا</span>
             <ChevronRight className="w-4 h-4 scale-x-[-1]" />
           </Link>
         </div>
@@ -226,7 +239,7 @@ export function Home() {
                 منظومة عمل إعلامية <span className="text-[#0055FF]">تتجاوز التوقعات</span>
               </h2>
               <p className="text-gray-300 text-sm leading-relaxed">
-                لسنا مجرد فريق يصمم منشورات، بل ندرس سلوك المستهلك الكويتي وتنافسية الكلمات المفتاحية في كل منطقة لتحسين ظهور علامتك في محركات البحث ورفع جودة فرص التواصل.
+                لسنا مجرد فريق يصمم منشورات، بل ندرس سلوك المستهلك الكويتي وتنافسية الرسالة الإعلانية في كل قناة لتحسين وضوح علامتك ورفع جودة فرص التواصل.
               </p>
               <div className="space-y-3.5 text-sm text-gray-300 pt-2">
                 <div className="flex items-center gap-3">
@@ -253,7 +266,7 @@ export function Home() {
             {/* Counters */}
             <div className="lg:col-span-7 grid grid-cols-2 md:grid-cols-3 gap-6 text-center">
               <div className="bg-[#12141E] p-6 rounded-2xl border border-white/5 shadow-lg space-y-2">
-                <span className="text-3xl font-black text-[#0055FF] font-mono tracking-tight block">16+</span>
+                <span className="text-3xl font-black text-[#0055FF] font-mono tracking-tight block">18+</span>
                 <span className="text-xs text-gray-400 block">خدمة رقمية متكاملة</span>
               </div>
               <div className="bg-[#12141E] p-6 rounded-2xl border border-white/5 shadow-lg space-y-2">
