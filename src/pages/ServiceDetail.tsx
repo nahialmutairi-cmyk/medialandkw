@@ -4,6 +4,12 @@ import { siteConfig } from '../siteConfig';
 import { getServiceIndustryPath, serviceIndustryPages } from '../serviceIndustryData';
 
 const paidAdsServiceIds = new Set(['paid-advertising', 'google-ads', 'instagram-ads', 'snapchat-ads', 'tiktok-ads']);
+const creativeGrowthServiceIds = new Set(['graphic-design', 'commercial-video', 'website-design']);
+const creativeRelatedServiceIds: Record<string, string[]> = {
+  'graphic-design': ['commercial-video', 'branding', 'content-creation', 'website-design'],
+  'commercial-video': ['content-creation', 'product-photography', 'graphic-design', 'paid-advertising'],
+  'website-design': ['ecommerce-design', 'graphic-design', 'commercial-video', 'paid-advertising']
+};
 
 export function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -26,11 +32,14 @@ export function ServiceDetail() {
   )}`;
   const industryLandingPages = serviceIndustryPages.filter((page) => page.serviceId === service.id);
   const showPaidAdsDepth = paidAdsServiceIds.has(service.id);
+  const showCreativeGrowthDepth = creativeGrowthServiceIds.has(service.id);
+  const showServiceDepth = showPaidAdsDepth || showCreativeGrowthDepth;
   const relatedPaidAdsServices = service.id === 'paid-advertising'
     ? siteConfig.services.filter((item) => ['google-ads', 'instagram-ads', 'snapchat-ads', 'tiktok-ads'].includes(item.id))
     : service.id === 'google-ads' || service.id === 'instagram-ads' || service.id === 'snapchat-ads' || service.id === 'tiktok-ads'
       ? siteConfig.services.filter((item) => item.id === 'paid-advertising')
       : [];
+  const relatedCreativeServices = siteConfig.services.filter((item) => creativeRelatedServiceIds[service.id]?.includes(item.id));
 
   return (
     <div className="max-w-5xl mx-auto px-6 sm:px-10 pb-20 space-y-16">
@@ -126,7 +135,7 @@ export function ServiceDetail() {
         </div>
       </div>
 
-      {showPaidAdsDepth && (
+      {showServiceDepth && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <section className="bg-[#12141E] border border-white/5 rounded-2xl p-6 space-y-3">
             <h2 className="text-base font-bold text-white border-r-4 border-[#0055FF] pr-3">متى تظهر الحاجة لهذه الخدمة؟</h2>
@@ -174,7 +183,7 @@ export function ServiceDetail() {
         </div>
       </div>
 
-      {showPaidAdsDepth && (
+      {showServiceDepth && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <section className="space-y-6">
             <h3 className="text-lg font-bold text-white border-r-4 border-[#0055FF] pr-3">أنشطة يمكن أن تستفيد من هذه الخدمة</h3>
@@ -208,6 +217,19 @@ export function ServiceDetail() {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {relatedPaidAdsServices.map((item) => (
+              <Link key={item.id} to={`/services/${item.id}`} className="bg-[#12141E] border border-white/5 hover:border-[#0055FF]/40 rounded-xl p-5 text-xs font-bold text-white transition-colors">
+                {item.title}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {relatedCreativeServices.length > 0 && (
+        <div className="space-y-6">
+          <h3 className="text-lg font-bold text-white border-r-4 border-[#0055FF] pr-3">خدمات مرتبطة بهذه الصفحة</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {relatedCreativeServices.map((item) => (
               <Link key={item.id} to={`/services/${item.id}`} className="bg-[#12141E] border border-white/5 hover:border-[#0055FF]/40 rounded-xl p-5 text-xs font-bold text-white transition-colors">
                 {item.title}
               </Link>
