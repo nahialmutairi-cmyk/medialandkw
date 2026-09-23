@@ -3,6 +3,8 @@ import { ArrowRight, MessageSquare, Check, Sparkles, Clock, Calendar, PhoneCall 
 import { siteConfig } from '../siteConfig';
 import { getServiceIndustryPath, serviceIndustryPages } from '../serviceIndustryData';
 
+const paidAdsServiceIds = new Set(['paid-advertising', 'google-ads', 'instagram-ads', 'snapchat-ads', 'tiktok-ads']);
+
 export function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
 
@@ -23,6 +25,12 @@ export function ServiceDetail() {
     `مرحباً ميديا لاند، أود الاستفسار وطلب تفاصيل وعرض سعر لخدمة: ${service.title}`
   )}`;
   const industryLandingPages = serviceIndustryPages.filter((page) => page.serviceId === service.id);
+  const showPaidAdsDepth = paidAdsServiceIds.has(service.id);
+  const relatedPaidAdsServices = service.id === 'paid-advertising'
+    ? siteConfig.services.filter((item) => ['google-ads', 'instagram-ads', 'snapchat-ads', 'tiktok-ads'].includes(item.id))
+    : service.id === 'google-ads' || service.id === 'instagram-ads' || service.id === 'snapchat-ads' || service.id === 'tiktok-ads'
+      ? siteConfig.services.filter((item) => item.id === 'paid-advertising')
+      : [];
 
   return (
     <div className="max-w-5xl mx-auto px-6 sm:px-10 pb-20 space-y-16">
@@ -44,7 +52,7 @@ export function ServiceDetail() {
             <span>خدمة مميزة معتمدة كويتياً</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight">
-            {service.title}
+            {service.h1 || service.title}
           </h1>
           <p className="text-[#F0F4FF]/80 text-sm sm:text-base leading-relaxed text-justify">
             {service.description}
@@ -118,6 +126,20 @@ export function ServiceDetail() {
         </div>
       </div>
 
+      {showPaidAdsDepth && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <section className="bg-[#12141E] border border-white/5 rounded-2xl p-6 space-y-3">
+            <h2 className="text-base font-bold text-white border-r-4 border-[#0055FF] pr-3">متى تظهر الحاجة لهذه الخدمة؟</h2>
+            <p className="text-xs sm:text-sm text-gray-400 leading-relaxed text-justify">{service.problem}</p>
+          </section>
+
+          <section className="bg-[#12141E] border border-white/5 rounded-2xl p-6 space-y-3">
+            <h2 className="text-base font-bold text-white border-r-4 border-[#FF3E55] pr-3">كيف تتعامل ميديا لاند معها؟</h2>
+            <p className="text-xs sm:text-sm text-gray-400 leading-relaxed text-justify">{service.solution}</p>
+          </section>
+        </div>
+      )}
+
       {/* Step by step process of work */}
       <div className="space-y-8">
         <div className="space-y-2">
@@ -151,6 +173,48 @@ export function ServiceDetail() {
           ))}
         </div>
       </div>
+
+      {showPaidAdsDepth && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <section className="space-y-6">
+            <h3 className="text-lg font-bold text-white border-r-4 border-[#0055FF] pr-3">أنشطة يمكن أن تستفيد من هذه الخدمة</h3>
+            <div className="grid grid-cols-1 gap-3">
+              {service.suitableFor.map((item) => (
+                <div key={item} className="bg-[#12141E]/70 border border-white/5 rounded-xl p-4 text-xs text-gray-300 leading-relaxed">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="space-y-6">
+            <h3 className="text-lg font-bold text-white border-r-4 border-[#FF3E55] pr-3">أسئلة قبل بدء الحملة</h3>
+            <div className="space-y-3">
+              {service.faq.map((item) => (
+                <details key={item.q} className="bg-[#12141E] border border-white/5 rounded-xl p-4">
+                  <summary className="cursor-pointer text-xs font-bold text-white">{item.q}</summary>
+                  <p className="mt-3 text-[11px] text-gray-400 leading-relaxed">{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {relatedPaidAdsServices.length > 0 && (
+        <div className="space-y-6">
+          <h3 className="text-lg font-bold text-white border-r-4 border-[#0055FF] pr-3">
+            {service.id === 'paid-advertising' ? 'اختر منصة الإعلان المناسبة' : 'الخطة العامة للحملات الممولة'}
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {relatedPaidAdsServices.map((item) => (
+              <Link key={item.id} to={`/services/${item.id}`} className="bg-[#12141E] border border-white/5 hover:border-[#0055FF]/40 rounded-xl p-5 text-xs font-bold text-white transition-colors">
+                {item.title}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {industryLandingPages.length > 0 && (
         <div className="space-y-6">
