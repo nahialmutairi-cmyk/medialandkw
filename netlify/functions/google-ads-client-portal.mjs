@@ -278,6 +278,19 @@ export async function handler(event) {
       const currentStatus = await readMockCampaignStatus(clientSlug);
 
       if (event.httpMethod === 'POST') {
+        if (adminPreview) {
+          return json(403, {
+            ok: false,
+            connected: true,
+            clientName: config.name,
+            campaignName: config.name,
+            status: currentStatus,
+            metrics: { impressions: 0, clicks: 0, ctr: 0, conversions: 0, conversionRate: 0 },
+            clientControlEnabled: false,
+            adminPreview: true,
+            message: 'هذا رابط معاينة إداري للعرض فقط. استخدم أزرار لوحة الإدارة لتنفيذ التشغيل أو الإيقاف.',
+          });
+        }
         verifyWriteOrigin(event);
         rateLimitAction(clientSlug, token);
         const body = JSON.parse(event.body || '{}');
@@ -319,15 +332,17 @@ export async function handler(event) {
       }
 
       if (event.httpMethod !== 'GET') return json(405, { ok: false, message: 'Method not allowed.', connected: true });
-      await recordClientActivity({
-        clientSlug,
-        clientName: config.name,
-        campaignId: 'MOCK',
-        eventType: 'PORTAL_VISIT',
-        ipAddress: getRequestIp(event),
-        deviceType: getDeviceType(event),
-        actor: 'CLIENT',
-      });
+      if (!adminPreview) {
+        await recordClientActivity({
+          clientSlug,
+          clientName: config.name,
+          campaignId: 'MOCK',
+          eventType: 'PORTAL_VISIT',
+          ipAddress: getRequestIp(event),
+          deviceType: getDeviceType(event),
+          actor: 'CLIENT',
+        });
+      }
       return json(200, {
         ok: true,
         connected: true,
@@ -336,7 +351,7 @@ export async function handler(event) {
         status: currentStatus,
         dateRange: event.queryStringParameters?.range || 'LAST_7_DAYS',
         metrics: { impressions: 1200, clicks: 48, ctr: 4, conversions: 6, conversionRate: 12.5 },
-        clientControlEnabled: control.clientControlEnabled,
+        clientControlEnabled: adminPreview ? false : control.clientControlEnabled,
         controlUpdatedAt: control.updatedAt,
         adminPreview,
       });
@@ -347,6 +362,20 @@ export async function handler(event) {
     const accessToken = await refreshAccessToken();
 
     if (event.httpMethod === 'POST') {
+      if (adminPreview) {
+        return json(403, {
+          ok: false,
+          connected: true,
+          clientName: config.name,
+          campaignName: config.name,
+          status: 'UNKNOWN',
+          metrics: { impressions: null, clicks: null, ctr: null, conversions: null, conversionRate: null },
+          lookerEmbedUrl: process.env[config.lookerEnv] || null,
+          clientControlEnabled: false,
+          adminPreview: true,
+          message: 'هذا رابط معاينة إداري للعرض فقط. استخدم أزرار لوحة الإدارة لتنفيذ التشغيل أو الإيقاف.',
+        });
+      }
       verifyWriteOrigin(event);
       rateLimitAction(clientSlug, token);
       const body = JSON.parse(event.body || '{}');
@@ -437,15 +466,17 @@ export async function handler(event) {
         endDate: event.queryStringParameters?.endDate,
         fallbackName: config.name,
       });
-      await recordClientActivity({
-        clientSlug,
-        clientName: config.name,
-        campaignId,
-        eventType: 'PORTAL_VISIT',
-        ipAddress: getRequestIp(event),
-        deviceType: getDeviceType(event),
-        actor: 'CLIENT',
-      });
+      if (!adminPreview) {
+        await recordClientActivity({
+          clientSlug,
+          clientName: config.name,
+          campaignId,
+          eventType: 'PORTAL_VISIT',
+          ipAddress: getRequestIp(event),
+          deviceType: getDeviceType(event),
+          actor: 'CLIENT',
+        });
+      }
       const control = await readClientControl(clientSlug);
 
     return json(200, {
@@ -457,7 +488,7 @@ export async function handler(event) {
       dateRange: snapshot.dateRange,
       metrics: snapshot.metrics,
       lookerEmbedUrl: process.env[config.lookerEnv] || null,
-      clientControlEnabled: control.clientControlEnabled,
+      clientControlEnabled: adminPreview ? false : control.clientControlEnabled,
       controlUpdatedAt: control.updatedAt,
       adminPreview,
     });
@@ -484,7 +515,7 @@ export async function handler(event) {
         dateRange: event.queryStringParameters?.range || 'LAST_7_DAYS',
         metrics: { impressions: null, clicks: null, ctr: null, conversions: null, conversionRate: null },
         lookerEmbedUrl: process.env[config.lookerEnv] || null,
-        clientControlEnabled: control.clientControlEnabled,
+        clientControlEnabled: adminPreview ? false : control.clientControlEnabled,
         controlUpdatedAt: control.updatedAt,
         adminPreview,
         message: 'بيانات Google Ads الحية غير متاحة مؤقتاً بسبب حد الاستخدام. تظهر آخر حالة مؤكدة من الأرشيف.',
