@@ -1,12 +1,26 @@
 import crypto from 'node:crypto';
 import { connectLambda, getStore } from '@netlify/blobs';
 
-export const activityEventTypes = ['PORTAL_VISIT', 'CAMPAIGN_ENABLED', 'CAMPAIGN_PAUSED'];
+export const activityEventTypes = [
+  'PORTAL_VISIT',
+  'CAMPAIGN_ENABLED',
+  'CAMPAIGN_PAUSED',
+  'ADMIN_CAMPAIGN_ENABLED',
+  'ADMIN_CAMPAIGN_PAUSED',
+  'ADMIN_CLIENT_CONTROL_LOCKED',
+  'ADMIN_CLIENT_CONTROL_UNLOCKED',
+  'ADMIN_CAMPAIGN_PAUSED_AND_LOCKED',
+];
 const maxEventsPerClient = 1000;
 const visitDedupeMs = 60_000;
+const clientControlStoreName = 'client-portal-control';
 
 function store() {
   return getStore('client-portal-activity');
+}
+
+function controlStore() {
+  return getStore(clientControlStoreName);
 }
 
 export function connectActivityStore(event) {
@@ -55,6 +69,30 @@ export function getDeviceType(event) {
   return 'Unknown';
 }
 
+function controlKey(clientSlug) {
+  return `${clientSlug}.json`;
+}
+
+export async function readClientControl(clientSlug) {
+  const payload = await controlStore().get(controlKey(clientSlug), { type: 'json' });
+  if (!payload || typeof payload.clientControlEnabled !== 'boolean') {
+    return { clientControlEnabled: true, updatedAt: null };
+  }
+  return {
+    clientControlEnabled: payload.clientControlEnabled,
+    updatedAt: payload.updatedAt || null,
+  };
+}
+
+export async function setClientControl(clientSlug, clientControlEnabled) {
+  const payload = {
+    clientControlEnabled: Boolean(clientControlEnabled),
+    updatedAt: new Date().toISOString(),
+  };
+  await controlStore().setJSON(controlKey(clientSlug), payload);
+  return payload;
+}
+
 function activityKey(clientSlug) {
   return `${clientSlug}.json`;
 }
@@ -89,7 +127,7 @@ export async function readClientActivity(clientSlug) {
   return [...byId.values()].sort((left, right) => Date.parse(right.occurredAt) - Date.parse(left.occurredAt));
 }
 
-export async function recordClientActivity({ clientSlug, clientName, campaignId, eventType, ipAddress = null, deviceType = null }) {
+export async function recordClientActivity({ clientSlug, clientName, campaignId, eventType, ipAddress = null, deviceType = null, actor = null }) {
   if (!activityEventTypes.includes(eventType)) return { recorded: false };
 
   const now = new Date();
@@ -107,6 +145,7 @@ export async function recordClientActivity({ clientSlug, clientName, campaignId,
     clientName,
     campaignId: campaignId || null,
     eventType,
+    actor: actor || (eventType.startsWith('ADMIN_') ? 'ADMIN' : 'CLIENT'),
     occurredAt: now.toISOString(),
     occurredAtKuwait: kuwaitTimestamp(now),
     ipAddress: eventType === 'PORTAL_VISIT' ? ipAddress : null,

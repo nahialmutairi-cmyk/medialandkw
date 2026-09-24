@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { connectActivityStore, getDeviceType, getRequestIp, recordClientActivity } from './_shared/client-portal-activity.mjs';
+import { connectActivityStore, getDeviceType, getRequestIp, readClientControl, recordClientActivity } from './_shared/client-portal-activity.mjs';
 import { buildServerClientConfigs } from '../../clientPortalRegistry.mjs';
 
 const allowedRanges = new Set(['TODAY', 'LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH']);
@@ -65,7 +65,7 @@ export async function refreshAccessToken() {
   return payload.access_token;
 }
 
-function googleAdsHeaders(accessToken) {
+export function googleAdsHeaders(accessToken) {
   const headers = {
     Authorization: `Bearer ${accessToken}`,
     'developer-token': requireEnv('GOOGLE_ADS_DEVELOPER_TOKEN'),
@@ -79,7 +79,7 @@ function googleAdsHeaders(accessToken) {
   return headers;
 }
 
-async function googleAdsSearch({ accessToken, customerId, query }) {
+export async function googleAdsSearch({ accessToken, customerId, query }) {
   const response = await fetch(`https://googleads.googleapis.com/v25/customers/${customerId}/googleAds:search`, {
     method: 'POST',
     headers: googleAdsHeaders(accessToken),
@@ -148,7 +148,7 @@ function rateLimitAction(clientSlug, token) {
   actionAttempts.set(key, attempts);
 }
 
-async function updateCampaignStatus({ accessToken, customerId, campaignId, status }) {
+export async function updateCampaignStatus({ accessToken, customerId, campaignId, status }) {
   const response = await fetch(`https://googleads.googleapis.com/v25/customers/${customerId}/campaigns:mutate`, {
     method: 'POST',
     headers: googleAdsHeaders(accessToken),
@@ -220,6 +220,20 @@ export async function handler(event) {
       const body = JSON.parse(event.body || '{}');
       const action = body.action;
       if (!['ENABLE', 'PAUSE'].includes(action)) return json(400, { ok: false, message: 'Invalid action.', connected: true });
+      const control = await readClientControl(clientSlug);
+      if (!control.clientControlEnabled) {
+        return json(403, {
+          ok: false,
+          connected: true,
+          clientName: config.name,
+          campaignName: config.name,
+          status: 'UNKNOWN',
+          metrics: { impressions: null, clicks: null, ctr: null, conversions: null, conversionRate: null },
+          lookerEmbedUrl: process.env[config.lookerEnv] || null,
+          clientControlEnabled: false,
+          message: 'تم تعليق التحكم بالحملة من قبل إدارة Media Land. يرجى التواصل مع الإدارة لإجراء أي تغيير.',
+        });
+      }
 
       const before = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
       await updateCampaignStatus({ accessToken, customerId, campaignId, status: action === 'ENABLE' ? 'ENABLED' : 'PAUSED' });
@@ -230,6 +244,7 @@ export async function handler(event) {
         clientName: config.name,
         campaignId,
         eventType: action === 'ENABLE' ? 'CAMPAIGN_ENABLED' : 'CAMPAIGN_PAUSED',
+        actor: 'CLIENT',
       });
       console.info(JSON.stringify({
         client: config.name,
@@ -249,6 +264,7 @@ export async function handler(event) {
         dateRange: after.dateRange,
         metrics: after.metrics,
         lookerEmbedUrl: process.env[config.lookerEnv] || null,
+        clientControlEnabled: true,
       });
     }
 
@@ -270,7 +286,9 @@ export async function handler(event) {
         eventType: 'PORTAL_VISIT',
         ipAddress: getRequestIp(event),
         deviceType: getDeviceType(event),
+        actor: 'CLIENT',
       });
+      const control = await readClientControl(clientSlug);
 
     return json(200, {
       ok: true,
@@ -281,6 +299,8 @@ export async function handler(event) {
       dateRange: snapshot.dateRange,
       metrics: snapshot.metrics,
       lookerEmbedUrl: process.env[config.lookerEnv] || null,
+      clientControlEnabled: control.clientControlEnabled,
+      controlUpdatedAt: control.updatedAt,
     });
   } catch (error) {
     console.error(JSON.stringify({
