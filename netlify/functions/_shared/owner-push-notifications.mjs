@@ -113,16 +113,33 @@ async function markDelivered(eventId, deviceId, payload) {
 }
 
 function notificationText({ eventType, clientName, kuwaitTime }) {
-  const enabled = eventType === 'CAMPAIGN_ENABLED';
+  const eventLabels = {
+    PORTAL_VISIT: {
+      title: `🔵 ${clientName} زار بوابة العميل`,
+      body: 'زيارة جديدة لبوابة العميل',
+    },
+    CAMPAIGN_ENABLED: {
+      title: `🟢 ${clientName} شغّل الحملة`,
+      body: 'تم تشغيل الحملة من بوابة العميل',
+    },
+    CAMPAIGN_PAUSED: {
+      title: `🔴 ${clientName} أوقف الحملة`,
+      body: 'تم إيقاف الحملة من بوابة العميل',
+    },
+  };
+  const text = eventLabels[eventType] || {
+    title: `Media Land - ${clientName}`,
+    body: 'حدث جديد في بوابة العميل',
+  };
   return {
-    title: `${enabled ? '🟢' : '🔴'} ${clientName} ${enabled ? 'شغّل الحملة' : 'أوقف الحملة'}`,
-    body: `${enabled ? 'تم تشغيل الحملة' : 'تم إيقاف الحملة'}${kuwaitTime ? `\n${kuwaitTime}` : ''}`,
+    title: text.title,
+    body: `${text.body}${kuwaitTime ? `\n${kuwaitTime}` : ''}`,
   };
 }
 
 export async function sendOwnerCampaignNotification(event) {
   if (!event || event.actor !== 'CLIENT') return { sent: 0, skipped: true };
-  if (!['CAMPAIGN_ENABLED', 'CAMPAIGN_PAUSED'].includes(event.eventType)) return { sent: 0, skipped: true };
+  if (!['PORTAL_VISIT', 'CAMPAIGN_ENABLED', 'CAMPAIGN_PAUSED'].includes(event.eventType)) return { sent: 0, skipped: true };
 
   const account = serviceAccount();
   if (!account?.project_id) {
@@ -152,6 +169,10 @@ export async function sendOwnerCampaignNotification(event) {
       body: JSON.stringify({
         message: {
           token: device.token,
+          notification: {
+            title: text.title,
+            body: text.body,
+          },
           data: {
             eventId: event.id,
             eventType: event.eventType,
@@ -161,6 +182,9 @@ export async function sendOwnerCampaignNotification(event) {
           },
           android: {
             priority: 'HIGH',
+            notification: {
+              channel_id: 'campaign_activity',
+            },
           },
         },
       }),
@@ -229,4 +253,3 @@ export async function sendOwnerTestNotification(deviceId = null) {
 
   return { sent: targets.length };
 }
-

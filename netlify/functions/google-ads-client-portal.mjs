@@ -286,7 +286,7 @@ export async function handler(event) {
       }
 
       if (event.httpMethod !== 'GET') return json(405, { ok: false, message: 'Method not allowed.', connected: true });
-      await recordClientActivity({
+      const visitRecorded = await recordClientActivity({
         clientSlug,
         clientName: config.name,
         campaignId: 'MOCK',
@@ -295,6 +295,7 @@ export async function handler(event) {
         deviceType: getDeviceType(event),
         actor: 'CLIENT',
       });
+      if (visitRecorded.event) await notifyOwnerSafely(visitRecorded.event);
       return json(200, {
         ok: true,
         connected: true,
@@ -401,7 +402,7 @@ export async function handler(event) {
         endDate: event.queryStringParameters?.endDate,
         fallbackName: config.name,
       });
-      await recordClientActivity({
+      const visitRecorded = await recordClientActivity({
         clientSlug,
         clientName: config.name,
         campaignId,
@@ -410,6 +411,7 @@ export async function handler(event) {
         deviceType: getDeviceType(event),
         actor: 'CLIENT',
       });
+      if (visitRecorded.event) await notifyOwnerSafely(visitRecorded.event);
       const control = await readClientControl(clientSlug);
 
     return json(200, {
