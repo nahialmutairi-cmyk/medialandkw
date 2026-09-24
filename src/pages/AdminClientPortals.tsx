@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ExternalLink, Lock, LockOpen, Pause, Play, RefreshCw, Search, ShieldCheck, ShieldOff } from 'lucide-react';
+import { ExternalLink, Lock, LockOpen, Moon, Pause, Play, RefreshCw, Search, ShieldCheck, ShieldOff, Sun } from 'lucide-react';
 
 type EventType =
   | 'PORTAL_VISIT'
@@ -29,6 +29,7 @@ type ClientPortalMonitor = {
   campaignStatus: string;
   connected: boolean;
   portalPath: string | null;
+  clientPagePath: string | null;
   clientControlEnabled: boolean;
   latestVisitAt: string | null;
   latestActionType: EventType | null;
@@ -120,6 +121,8 @@ export function AdminClientPortals() {
   const [actionLoading, setActionLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ action: AdminAction; client: ClientPortalMonitor } | null>(null);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('ml_admin_theme') === 'dark');
+  const theme = darkMode ? 'dark' : 'light';
 
   useEffect(() => {
     document.title = 'Media Land Ads Control Center';
@@ -128,6 +131,10 @@ export function AdminClientPortals() {
     robots.setAttribute('content', 'noindex,nofollow');
     if (!robots.parentNode) document.head.appendChild(robots);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('ml_admin_theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   async function load(nextPassword = password) {
     if (!nextPassword) return;
@@ -206,9 +213,9 @@ export function AdminClientPortals() {
 
   if (!data?.ok) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-5 text-slate-950" dir="rtl">
+      <main className={`flex min-h-screen items-center justify-center px-5 ${darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-950'}`} dir="rtl">
         <form
-          className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          className={`w-full max-w-md rounded-2xl border p-6 shadow-sm ${darkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}
           onSubmit={(event) => {
             event.preventDefault();
             const form = new FormData(event.currentTarget);
@@ -221,11 +228,11 @@ export function AdminClientPortals() {
             </div>
             <div>
               <h1 className="text-xl font-black">Media Land Ads Control Center</h1>
-              <p className="mt-1 text-xs text-slate-500">لوحة إدارة داخلية خاصة</p>
+              <p className={`mt-1 text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>لوحة إدارة داخلية خاصة</p>
             </div>
           </div>
           <input
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-600"
+            className={`w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-blue-600 ${darkMode ? 'border-slate-700 bg-slate-950 text-white' : 'border-slate-200 bg-slate-50'}`}
             name="password"
             type="password"
             autoComplete="current-password"
@@ -243,7 +250,7 @@ export function AdminClientPortals() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-5 text-slate-950 sm:px-8" dir="rtl">
+    <main className={`min-h-screen px-4 py-5 sm:px-8 ${darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-950'}`} dir="rtl" data-theme={theme}>
       <section className="mx-auto max-w-7xl">
         <header className="mb-6 rounded-2xl bg-slate-950 p-5 text-white shadow-sm sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -252,10 +259,16 @@ export function AdminClientPortals() {
               <h1 className="mt-2 text-2xl font-black sm:text-4xl">Media Land Ads Control Center</h1>
               <p className="mt-2 text-sm text-slate-300">إدارة بوابات العملاء، قفل التحكم، وأرشيف النشاط بالثواني.</p>
             </div>
-            <button onClick={() => void load()} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-950">
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              تحديث
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => setDarkMode((current) => !current)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-bold text-white">
+                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                {darkMode ? 'فاتح' : 'داكن'}
+              </button>
+              <button onClick={() => void load()} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-950">
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                تحديث
+              </button>
+            </div>
           </div>
         </header>
 
@@ -267,7 +280,7 @@ export function AdminClientPortals() {
         </div>
 
         <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_auto]">
-          <label className="flex min-h-12 items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 shadow-sm">
+          <label className={`flex min-h-12 items-center gap-3 rounded-xl border px-4 shadow-sm ${darkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
             <Search className="h-4 w-4 text-blue-600" />
             <input
               className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none placeholder:text-slate-400"
@@ -281,7 +294,7 @@ export function AdminClientPortals() {
               <button
                 key={item.value}
                 onClick={() => setFilter(item.value)}
-                className={`min-h-12 rounded-xl border px-4 text-sm font-bold ${filter === item.value ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600'}`}
+                className={`min-h-12 rounded-xl border px-4 text-sm font-bold ${filter === item.value ? 'border-blue-600 bg-blue-600 text-white' : darkMode ? 'border-slate-800 bg-slate-900 text-slate-200' : 'border-slate-200 bg-white text-slate-600'}`}
               >
                 {item.label}
               </button>
@@ -294,10 +307,10 @@ export function AdminClientPortals() {
         <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_430px]">
           <div className="grid content-start gap-4 md:grid-cols-2">
             {clients.map((client) => (
-              <article key={client.clientSlug} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <article key={client.clientSlug} className={`rounded-2xl border p-5 shadow-sm ${darkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
                 <button className="block text-right" onClick={() => setSelectedClientSlug(client.clientSlug)}>
                   <h2 className="text-xl font-black">{client.name}</h2>
-                  <p className="mt-1 text-xs text-slate-500">{client.campaignName}</p>
+                  <p className={`mt-1 text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{client.campaignName}</p>
                 </button>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Badge tone={client.campaignStatus === 'ENABLED' ? 'green' : client.campaignStatus === 'PAUSED' ? 'red' : 'slate'}>
@@ -320,40 +333,47 @@ export function AdminClientPortals() {
                   <ActionButton label="إيقاف وقفل" icon={<ShieldOff className="h-4 w-4" />} danger onClick={() => setConfirm({ action: 'PAUSE_AND_LOCK', client })} />
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button onClick={() => setSelectedClientSlug(client.clientSlug)} className="min-h-12 flex-1 rounded-xl border border-blue-200 px-4 py-2 text-sm font-bold text-blue-700">
+                  <button onClick={() => setSelectedClientSlug(client.clientSlug)} className={`min-h-12 flex-1 rounded-xl border px-4 py-2 text-sm font-bold ${darkMode ? 'border-blue-900 text-blue-200' : 'border-blue-200 text-blue-700'}`}>
                     عرض النشاط
                   </button>
-                  <span className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-500" title="الرابط الكامل يحتوي token آمن غير معروض">
+                  <a
+                    href={client.clientPagePath || '#'}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-disabled={!client.clientPagePath}
+                    className={`inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm ${darkMode ? 'border-slate-700 text-slate-200 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} ${client.clientPagePath ? '' : 'pointer-events-none opacity-50'}`}
+                    title="فتح صفحة العميل على الموقع"
+                  >
                     صفحة العميل <ExternalLink className="h-4 w-4" />
-                  </span>
+                  </a>
                 </div>
               </article>
             ))}
           </div>
 
-          <aside className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <aside className={`rounded-2xl border p-5 shadow-sm ${darkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-black">{selectedClient ? `سجل ${selectedClient.name}` : 'سجل النشاط'}</h2>
-                <p className="mt-1 text-xs text-slate-500">الأحدث أولاً - توقيت الكويت</p>
+                <p className={`mt-1 text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>الأحدث أولاً - توقيت الكويت</p>
               </div>
               <ShieldCheck className="h-5 w-5 text-emerald-600" />
             </div>
             <div className="space-y-4">
               {(selectedClient?.events ?? []).map((event) => (
-                <div key={event.id} className="border-r-2 border-slate-200 pr-4">
-                  <p className="font-mono text-sm text-slate-500">{formatKuwait(event.occurredAt)}</p>
+                <div key={event.id} className={`border-r-2 pr-4 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                  <p className={`font-mono text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{formatKuwait(event.occurredAt)}</p>
                   <p className="mt-1 text-sm font-bold">{eventLabel(event.eventType)}</p>
-                  <p className="mt-1 text-xs text-slate-500">المنفذ: {event.actor === 'ADMIN' ? 'الإدارة' : 'العميل'}</p>
+                  <p className={`mt-1 text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>المنفذ: {event.actor === 'ADMIN' ? 'الإدارة' : 'العميل'}</p>
                   {event.eventType === 'PORTAL_VISIT' && (
-                    <div className="mt-2 grid gap-1 text-xs text-slate-500">
-                      <p>نوع الجهاز: <span className="font-bold text-slate-700">{deviceLabel(event.deviceType)}</span></p>
-                      <p>IP: <span className="font-mono font-bold text-slate-700" dir="ltr">{event.ipAddress || 'غير متاح'}</span></p>
+                    <div className={`mt-2 grid gap-1 text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      <p>نوع الجهاز: <span className={`font-bold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>{deviceLabel(event.deviceType)}</span></p>
+                      <p>IP: <span className={`font-mono font-bold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`} dir="ltr">{event.ipAddress || 'غير متاح'}</span></p>
                     </div>
                   )}
                 </div>
               ))}
-              {!(selectedClient?.events ?? []).length && <p className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">لا يوجد نشاط محفوظ.</p>}
+              {!(selectedClient?.events ?? []).length && <p className={`rounded-xl border border-dashed p-6 text-center text-sm ${darkMode ? 'border-slate-700 text-slate-400' : 'border-slate-300 text-slate-500'}`}>لا يوجد نشاط محفوظ.</p>}
             </div>
           </aside>
         </section>
@@ -361,9 +381,9 @@ export function AdminClientPortals() {
 
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 px-4 pb-4 backdrop-blur-sm sm:items-center sm:pb-0">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-right shadow-2xl">
+          <div className={`w-full max-w-md rounded-2xl border p-6 text-right shadow-2xl ${darkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
             <h2 className="text-xl font-black">تأكيد {actionCopy(confirm.action)}</h2>
-            <p className="mt-2 text-sm leading-7 text-slate-600">سيتم تنفيذ الإجراء على حملة {confirm.client.name} من صلاحية الإدارة وتسجيله في الأرشيف الدائم.</p>
+            <p className={`mt-2 text-sm leading-7 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>سيتم تنفيذ الإجراء على حملة {confirm.client.name} من صلاحية الإدارة وتسجيله في الأرشيف الدائم.</p>
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button disabled={actionLoading} onClick={() => setConfirm(null)} className="min-h-12 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600">إلغاء</button>
               <button disabled={actionLoading} onClick={() => runAdminAction(confirm.action, confirm.client)} className="min-h-12 rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white disabled:opacity-50">
