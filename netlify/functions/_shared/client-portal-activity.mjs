@@ -16,11 +16,11 @@ const visitDedupeMs = 60_000;
 const clientControlStoreName = 'client-portal-control';
 
 function store() {
-  return getStore('client-portal-activity');
+  return getStore({ name: 'client-portal-activity', consistency: 'strong' });
 }
 
 function controlStore() {
-  return getStore(clientControlStoreName);
+  return getStore({ name: clientControlStoreName, consistency: 'strong' });
 }
 
 export function connectActivityStore(event) {
@@ -74,7 +74,7 @@ function controlKey(clientSlug) {
 }
 
 export async function readClientControl(clientSlug) {
-  const payload = await controlStore().get(controlKey(clientSlug), { type: 'json' });
+  const payload = await controlStore().get(controlKey(clientSlug), { type: 'json', consistency: 'strong' });
   if (!payload || typeof payload.clientControlEnabled !== 'boolean') {
     return { clientControlEnabled: true, updatedAt: null };
   }
@@ -94,7 +94,7 @@ export async function setClientControl(clientSlug, clientControlEnabled) {
 }
 
 export async function readMockCampaignStatus(clientSlug) {
-  const payload = await controlStore().get(`${clientSlug}.campaign.json`, { type: 'json' });
+  const payload = await controlStore().get(`${clientSlug}.campaign.json`, { type: 'json', consistency: 'strong' });
   return payload?.status || 'PAUSED';
 }
 
@@ -120,14 +120,14 @@ function activityEventKey(clientSlug, event) {
 }
 
 export async function readClientActivity(clientSlug) {
-  const payload = await store().get(activityKey(clientSlug), { type: 'json' });
+  const payload = await store().get(activityKey(clientSlug), { type: 'json', consistency: 'strong' });
   const legacyEvents = Array.isArray(payload) ? payload : [];
   let eventBlobs = [];
 
   try {
     const listed = await store().list({ prefix: activityEventPrefix(clientSlug) });
     eventBlobs = await Promise.all(
-      (listed.blobs || []).map(async (blob) => store().get(blob.key, { type: 'json' }))
+      (listed.blobs || []).map(async (blob) => store().get(blob.key, { type: 'json', consistency: 'strong' }))
     );
   } catch {
     eventBlobs = [];
