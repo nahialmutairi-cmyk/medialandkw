@@ -34,7 +34,10 @@ export async function readDynamicClientPortalRegistry() {
 export async function readClientPortalRegistry() {
   const dynamic = await readDynamicClientPortalRegistry();
   const bySlug = new Map(clientPortalRegistry.map((client) => [client.slug, normalizeClient(client)]));
-  dynamic.forEach((client) => bySlug.set(client.slug, client));
+  dynamic.forEach((client) => {
+    const existing = bySlug.get(client.slug) || {};
+    bySlug.set(client.slug, normalizeClient({ ...existing, ...client }));
+  });
   return [...bySlug.values()].filter((client) => client.status !== 'DISABLED');
 }
 
