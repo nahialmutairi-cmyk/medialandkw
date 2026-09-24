@@ -10,7 +10,7 @@ import {
   setMockCampaignStatus,
 } from './_shared/client-portal-activity.mjs';
 import { readServerClientConfigs, upsertDynamicClientPortal } from './_shared/client-portal-registry.mjs';
-import { getCampaignSnapshot, refreshAccessToken, updateCampaignStatus } from './google-ads-client-portal.mjs';
+import { createAdminPortalToken, getCampaignSnapshot, refreshAccessToken, updateCampaignStatus } from './google-ads-client-portal.mjs';
 import { sha256 } from './_shared/client-portal-activity.mjs';
 
 function json(statusCode, body) {
@@ -177,6 +177,7 @@ export async function handler(event) {
     const latestVisit = events.find((item) => item.eventType === 'PORTAL_VISIT') || null;
     const latestAction = events.find((item) => item.eventType !== 'PORTAL_VISIT') || null;
     const tokenConfigured = Boolean(config.tokenHash || process.env[config.tokenHashEnv]);
+    const adminPortalToken = createAdminPortalToken(clientSlug);
     const control = await readClientControl(clientSlug);
 
     return {
@@ -189,7 +190,7 @@ export async function handler(event) {
       campaignEnabled: snapshot.status === 'ENABLED',
       connected: snapshot.connected,
       liveDataAvailable: snapshot.liveDataAvailable !== false,
-      portalPath: tokenConfigured ? `/portal/${clientSlug}/` : null,
+      portalPath: tokenConfigured ? `/portal/${clientSlug}/${adminPortalToken}/` : null,
       clientPagePath: config.clientKey ? `/clients/${config.clientKey}/` : null,
       clientControlEnabled: control.clientControlEnabled,
       controlUpdatedAt: control.updatedAt,

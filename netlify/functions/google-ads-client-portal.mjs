@@ -30,6 +30,34 @@ function safeEqual(a, b) {
   return crypto.timingSafeEqual(left, right);
 }
 
+function adminPortalSecret() {
+  return process.env.ADMIN_PORTAL_PASSWORD_SHA256 || '';
+}
+
+export function createAdminPortalToken(clientSlug, now = Date.now()) {
+  const expiresAt = now + 30 * 60 * 1000;
+  const signature = crypto
+    .createHmac('sha256', adminPortalSecret())
+    .update(`${clientSlug}:${expiresAt}`)
+    .digest('hex');
+  return `admin-${expiresAt}-${signature}`;
+}
+
+function verifyAdminPortalToken(clientSlug, token) {
+  const match = /^admin-(\d{12,})-([a-f0-9]{64})$/i.exec(token || '');
+  const secret = adminPortalSecret();
+  if (!match || !secret) return false;
+
+  const expiresAt = Number(match[1]);
+  if (!Number.isFinite(expiresAt) || Date.now() > expiresAt) return false;
+
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(`${clientSlug}:${expiresAt}`)
+    .digest('hex');
+  return safeEqual(expected, match[2].toLowerCase());
+}
+
 function parsePath(event) {
   const raw = event.path || '';
   const marker = '/.netlify/functions/google-ads-client-portal/';
@@ -205,6 +233,10 @@ async function validateClient(clientSlug, token) {
   const config = clientConfigs[clientSlug];
   if (!config || !token) return { error: json(404, { ok: false, message: 'Invalid client portal link.', connected: false }) };
 
+  if (verifyAdminPortalToken(clientSlug, token)) {
+    return { config, adminPreview: true };
+  }
+
   const tokenHash = config.tokenHash || process.env[config.tokenHashEnv];
   if (!tokenHash) {
     return {
@@ -226,7 +258,7 @@ export async function handler(event) {
   const validation = await validateClient(clientSlug, token);
   if (validation.error) return validation.error;
 
-  const { config, notConfigured } = validation;
+  const { config, notConfigured, adminPreview = false } = validation;
   if (notConfigured) {
     return json(503, {
       ok: false,
@@ -282,6 +314,7 @@ export async function handler(event) {
           dateRange: 'TODAY',
           metrics: { impressions: 1200, clicks: 48, ctr: 4, conversions: 6, conversionRate: 12.5 },
           clientControlEnabled: true,
+          adminPreview,
         });
       }
 
@@ -305,6 +338,7 @@ export async function handler(event) {
         metrics: { impressions: 1200, clicks: 48, ctr: 4, conversions: 6, conversionRate: 12.5 },
         clientControlEnabled: control.clientControlEnabled,
         controlUpdatedAt: control.updatedAt,
+        adminPreview,
       });
     }
 
@@ -357,6 +391,7 @@ export async function handler(event) {
           metrics: after.metrics,
           lookerEmbedUrl: process.env[config.lookerEnv] || null,
           clientControlEnabled: true,
+          adminPreview,
           message: 'Google Ads did not confirm the requested campaign state.',
         });
       }
@@ -387,6 +422,7 @@ export async function handler(event) {
         metrics: after.metrics,
         lookerEmbedUrl: process.env[config.lookerEnv] || null,
         clientControlEnabled: true,
+        adminPreview,
       });
     }
 
@@ -423,6 +459,7 @@ export async function handler(event) {
       lookerEmbedUrl: process.env[config.lookerEnv] || null,
       clientControlEnabled: control.clientControlEnabled,
       controlUpdatedAt: control.updatedAt,
+      adminPreview,
     });
   } catch (error) {
     if (event.httpMethod === 'GET' && isQuotaError(error)) {
@@ -449,6 +486,7 @@ export async function handler(event) {
         lookerEmbedUrl: process.env[config.lookerEnv] || null,
         clientControlEnabled: control.clientControlEnabled,
         controlUpdatedAt: control.updatedAt,
+        adminPreview,
         message: 'بيانات Google Ads الحية غير متاحة مؤقتاً بسبب حد الاستخدام. تظهر آخر حالة مؤكدة من الأرشيف.',
       });
     }
