@@ -110,6 +110,31 @@ async function handleAdminAction(event) {
     return json(200, { ok: true, client, token });
   }
 
+  if (action === 'SET_CLIENT_PORTAL_URL') {
+    const clientConfigs = await readServerClientConfigs();
+    const config = clientConfigs[body.clientSlug];
+    const portalUrl = String(body.portalUrl || '').trim();
+    if (!config) return json(400, { ok: false, message: 'Invalid client.' });
+    if (!/^https:\/\/medialandkw\.online\/portal\/[^/]+\/[^/]+\/$/.test(portalUrl)) {
+      return json(400, { ok: false, message: 'Invalid client portal URL.' });
+    }
+    const client = await upsertDynamicClientPortal({
+      slug: body.clientSlug,
+      name: config.name,
+      campaignLabel: config.campaignLabel || config.name,
+      clientKey: config.clientKey,
+      status: config.status || 'ACTIVE',
+      customerIdEnv: config.customerIdEnv,
+      campaignIdEnv: config.campaignIdEnv,
+      tokenHashEnv: config.tokenHashEnv,
+      portalUrlEnv: config.portalUrlEnv,
+      portalUrl,
+      lookerEnv: config.lookerEnv,
+      mock: Boolean(config.mock),
+    });
+    return json(200, { ok: true, client: { ...client, portalUrl: undefined } });
+  }
+
   const clientConfigs = await readServerClientConfigs();
   const clientSlug = body.clientSlug;
   const config = clientConfigs[clientSlug];
