@@ -332,10 +332,20 @@ export function AdminClientPortals() {
                   <ActionButton label={client.clientControlEnabled ? 'قفل العميل' : 'فتح العميل'} icon={client.clientControlEnabled ? <Lock className="h-4 w-4" /> : <LockOpen className="h-4 w-4" />} onClick={() => setConfirm({ action: client.clientControlEnabled ? 'LOCK' : 'UNLOCK', client })} />
                   <ActionButton label="إيقاف وقفل" icon={<ShieldOff className="h-4 w-4" />} danger onClick={() => setConfirm({ action: 'PAUSE_AND_LOCK', client })} />
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
                   <button onClick={() => setSelectedClientSlug(client.clientSlug)} className={`min-h-12 flex-1 rounded-xl border px-4 py-2 text-sm font-bold ${darkMode ? 'border-blue-900 text-blue-200' : 'border-blue-200 text-blue-700'}`}>
                     عرض النشاط
                   </button>
+                  <a
+                    href={client.portalPath || '#'}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-disabled={!client.portalPath}
+                    className={`inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold ${darkMode ? 'border-blue-900 text-blue-200 hover:bg-slate-800' : 'border-blue-200 text-blue-700 hover:bg-blue-50'} ${client.portalPath ? '' : 'pointer-events-none opacity-50'}`}
+                    title="فتح بوابة التحكم الخاصة بالعميل"
+                  >
+                    بوابة العميل <ExternalLink className="h-4 w-4" />
+                  </a>
                   <a
                     href={client.clientPagePath || '#'}
                     target="_blank"
