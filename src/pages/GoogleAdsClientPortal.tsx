@@ -140,18 +140,6 @@ export function GoogleAdsClientPortal() {
     }
   }
 
-  if (!config) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#080910] px-6 text-right text-white" dir="rtl">
-        <div className="max-w-md rounded-2xl border border-red-400/20 bg-[#12141E] p-8">
-          <AlertTriangle className="mb-4 h-8 w-8 text-red-300" />
-          <h1 className="text-2xl font-black">رابط غير صالح</h1>
-          <p className="mt-3 text-sm leading-7 text-white/60">هذه البوابة غير متاحة أو أن رابط العميل غير صحيح.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#080910] text-white" dir="rtl">
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-6 sm:px-8 lg:px-10">

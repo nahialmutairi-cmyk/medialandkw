@@ -43,13 +43,17 @@ export function buildServerClientConfigs(registry = clientPortalRegistry) {
     registry.map((client) => [
       client.slug,
       {
+        slug: client.slug,
         name: client.name,
+        campaignLabel: client.campaignLabel,
         clientKey: client.clientKey,
         status: client.status,
         customerIdEnv: client.customerIdEnv,
         campaignIdEnv: client.campaignIdEnv,
         tokenHashEnv: client.tokenHashEnv,
+        tokenHash: client.tokenHash,
         lookerEnv: client.lookerEnv,
+        mock: Boolean(client.mock),
       },
     ])
   );

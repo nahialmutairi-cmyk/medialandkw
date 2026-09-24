@@ -4,10 +4,14 @@ import {
   isAdminAuthorized,
   readAllActivity,
   readClientControl,
+  readMockCampaignStatus,
   recordClientActivity,
   setClientControl,
+  setMockCampaignStatus,
 } from './_shared/client-portal-activity.mjs';
-import { clientConfigs, getCampaignSnapshot, refreshAccessToken, updateCampaignStatus } from './google-ads-client-portal.mjs';
+import { readServerClientConfigs, upsertDynamicClientPortal } from './_shared/client-portal-registry.mjs';
+import { getCampaignSnapshot, refreshAccessToken, updateCampaignStatus } from './google-ads-client-portal.mjs';
+import { sha256 } from './_shared/client-portal-activity.mjs';
 
 function json(statusCode, body) {
   return {
@@ -37,6 +41,9 @@ function startOfKuwaitDayUtc() {
 
 async function safeSnapshot(config, accessToken) {
   try {
+    if (config.mock) {
+      return { status: await readMockCampaignStatus(config.slug), campaignName: config.name, connected: true };
+    }
     const customerId = process.env[config.customerIdEnv]?.replaceAll('-', '');
     const campaignId = process.env[config.campaignIdEnv];
     if (!customerId || !campaignId || !accessToken) return { status: 'UNKNOWN', campaignName: config.name, connected: false };
@@ -59,21 +66,39 @@ function adminEventType(action) {
 async function handleAdminAction(event) {
   const body = JSON.parse(event.body || '{}');
   const action = body.action;
+  if (action === 'REGISTER_TEST_CLIENT') {
+    const token = 'ml-test-token-2026';
+    const client = await upsertDynamicClientPortal({
+      slug: 'media-land-test-client',
+      name: 'Media Land Test Client',
+      campaignLabel: 'Media Land Test Campaign',
+      clientKey: 'media-land-test-client',
+      tokenHash: sha256(token),
+      mock: true,
+      status: 'ACTIVE',
+    });
+    await setMockCampaignStatus(client.slug, 'PAUSED');
+    return json(200, { ok: true, client, token });
+  }
+
+  const clientConfigs = await readServerClientConfigs();
   const clientSlug = body.clientSlug;
   const config = clientConfigs[clientSlug];
   const eventType = adminEventType(action);
   if (!config || !eventType) return json(400, { ok: false, message: 'Invalid admin action.' });
 
   const customerId = process.env[config.customerIdEnv]?.replaceAll('-', '');
-  const campaignId = process.env[config.campaignIdEnv];
-  if (!customerId || !campaignId) return json(503, { ok: false, message: 'Google Ads campaign is not configured.' });
+  const campaignId = process.env[config.campaignIdEnv] || (config.mock ? 'MOCK' : null);
+  if (!config.mock && (!customerId || !campaignId)) return json(503, { ok: false, message: 'Google Ads campaign is not configured.' });
 
-  const accessToken = await refreshAccessToken();
+  const accessToken = config.mock ? null : await refreshAccessToken();
   if (action === 'ENABLE') {
-    await updateCampaignStatus({ accessToken, customerId, campaignId, status: 'ENABLED' });
+    if (config.mock) await setMockCampaignStatus(clientSlug, 'ENABLED');
+    else await updateCampaignStatus({ accessToken, customerId, campaignId, status: 'ENABLED' });
   }
   if (action === 'PAUSE' || action === 'PAUSE_AND_LOCK') {
-    await updateCampaignStatus({ accessToken, customerId, campaignId, status: 'PAUSED' });
+    if (config.mock) await setMockCampaignStatus(clientSlug, 'PAUSED');
+    else await updateCampaignStatus({ accessToken, customerId, campaignId, status: 'PAUSED' });
   }
   if (action === 'LOCK' || action === 'PAUSE_AND_LOCK') {
     await setClientControl(clientSlug, false);
@@ -82,7 +107,9 @@ async function handleAdminAction(event) {
     await setClientControl(clientSlug, true);
   }
 
-  const snapshot = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
+  const snapshot = config.mock
+    ? { status: await readMockCampaignStatus(clientSlug), campaignName: config.name }
+    : await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
   const control = await readClientControl(clientSlug);
   await recordClientActivity({
     clientSlug,
@@ -115,6 +142,7 @@ export async function handler(event) {
     }
   }
 
+  const clientConfigs = await readServerClientConfigs();
   const activities = await readAllActivity(clientConfigs);
   let accessToken = null;
   try {

@@ -93,6 +93,20 @@ export async function setClientControl(clientSlug, clientControlEnabled) {
   return payload;
 }
 
+export async function readMockCampaignStatus(clientSlug) {
+  const payload = await controlStore().get(`${clientSlug}.campaign.json`, { type: 'json' });
+  return payload?.status || 'PAUSED';
+}
+
+export async function setMockCampaignStatus(clientSlug, status) {
+  const payload = {
+    status,
+    updatedAt: new Date().toISOString(),
+  };
+  await controlStore().setJSON(`${clientSlug}.campaign.json`, payload);
+  return payload;
+}
+
 function activityKey(clientSlug) {
   return `${clientSlug}.json`;
 }

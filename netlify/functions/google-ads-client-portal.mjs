@@ -1,11 +1,9 @@
 import crypto from 'node:crypto';
-import { connectActivityStore, getDeviceType, getRequestIp, readClientControl, recordClientActivity } from './_shared/client-portal-activity.mjs';
-import { buildServerClientConfigs } from '../../clientPortalRegistry.mjs';
+import { connectActivityStore, getDeviceType, getRequestIp, readClientControl, readMockCampaignStatus, recordClientActivity, setMockCampaignStatus } from './_shared/client-portal-activity.mjs';
+import { readServerClientConfigs } from './_shared/client-portal-registry.mjs';
 
 const allowedRanges = new Set(['TODAY', 'LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH']);
 const actionAttempts = new Map();
-
-export const clientConfigs = buildServerClientConfigs();
 
 function json(statusCode, body) {
   return {
@@ -170,11 +168,12 @@ export async function updateCampaignStatus({ accessToken, customerId, campaignId
   return payload;
 }
 
-function validateClient(clientSlug, token) {
+async function validateClient(clientSlug, token) {
+  const clientConfigs = await readServerClientConfigs();
   const config = clientConfigs[clientSlug];
   if (!config || !token) return { error: json(404, { ok: false, message: 'Invalid client portal link.', connected: false }) };
 
-  const tokenHash = process.env[config.tokenHashEnv];
+  const tokenHash = config.tokenHash || process.env[config.tokenHashEnv];
   if (!tokenHash) {
     return {
       config,
@@ -192,7 +191,7 @@ function validateClient(clientSlug, token) {
 export async function handler(event) {
   connectActivityStore(event);
   const { clientSlug, token } = parsePath(event);
-  const validation = validateClient(clientSlug, token);
+  const validation = await validateClient(clientSlug, token);
   if (validation.error) return validation.error;
 
   const { config, notConfigured } = validation;
@@ -210,6 +209,72 @@ export async function handler(event) {
   }
 
   try {
+    if (config.mock) {
+      const control = await readClientControl(clientSlug);
+      const currentStatus = await readMockCampaignStatus(clientSlug);
+
+      if (event.httpMethod === 'POST') {
+        verifyWriteOrigin(event);
+        rateLimitAction(clientSlug, token);
+        const body = JSON.parse(event.body || '{}');
+        const action = body.action;
+        if (!['ENABLE', 'PAUSE'].includes(action)) return json(400, { ok: false, message: 'Invalid action.', connected: true });
+        if (!control.clientControlEnabled) {
+          return json(403, {
+            ok: false,
+            connected: true,
+            clientName: config.name,
+            campaignName: config.name,
+            status: currentStatus,
+            metrics: { impressions: 0, clicks: 0, ctr: 0, conversions: 0, conversionRate: 0 },
+            clientControlEnabled: false,
+            message: 'تم تعليق التحكم بالحملة من قبل إدارة Media Land. يرجى التواصل مع الإدارة لإجراء أي تغيير.',
+          });
+        }
+        const status = action === 'ENABLE' ? 'ENABLED' : 'PAUSED';
+        await setMockCampaignStatus(clientSlug, status);
+        await recordClientActivity({
+          clientSlug,
+          clientName: config.name,
+          campaignId: 'MOCK',
+          eventType: action === 'ENABLE' ? 'CAMPAIGN_ENABLED' : 'CAMPAIGN_PAUSED',
+          actor: 'CLIENT',
+        });
+        return json(200, {
+          ok: true,
+          connected: true,
+          clientName: config.name,
+          campaignName: config.name,
+          status,
+          dateRange: 'TODAY',
+          metrics: { impressions: 1200, clicks: 48, ctr: 4, conversions: 6, conversionRate: 12.5 },
+          clientControlEnabled: true,
+        });
+      }
+
+      if (event.httpMethod !== 'GET') return json(405, { ok: false, message: 'Method not allowed.', connected: true });
+      await recordClientActivity({
+        clientSlug,
+        clientName: config.name,
+        campaignId: 'MOCK',
+        eventType: 'PORTAL_VISIT',
+        ipAddress: getRequestIp(event),
+        deviceType: getDeviceType(event),
+        actor: 'CLIENT',
+      });
+      return json(200, {
+        ok: true,
+        connected: true,
+        clientName: config.name,
+        campaignName: config.name,
+        status: currentStatus,
+        dateRange: event.queryStringParameters?.range || 'LAST_7_DAYS',
+        metrics: { impressions: 1200, clicks: 48, ctr: 4, conversions: 6, conversionRate: 12.5 },
+        clientControlEnabled: control.clientControlEnabled,
+        controlUpdatedAt: control.updatedAt,
+      });
+    }
+
     const customerId = requireEnv(config.customerIdEnv).replaceAll('-', '');
     const campaignId = requireEnv(config.campaignIdEnv);
     const accessToken = await refreshAccessToken();
