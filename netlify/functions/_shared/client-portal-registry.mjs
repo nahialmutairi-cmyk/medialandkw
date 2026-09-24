@@ -26,6 +26,14 @@ function normalizeClient(client) {
   };
 }
 
+function mergeClientConfig(base, override) {
+  const merged = { ...base };
+  Object.entries(override).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') merged[key] = value;
+  });
+  return merged;
+}
+
 export async function readDynamicClientPortalRegistry() {
   const payload = await store().get(registryKey, { type: 'json' });
   return Array.isArray(payload) ? payload.map(normalizeClient) : [];
@@ -36,7 +44,7 @@ export async function readClientPortalRegistry() {
   const bySlug = new Map(clientPortalRegistry.map((client) => [client.slug, normalizeClient(client)]));
   dynamic.forEach((client) => {
     const existing = bySlug.get(client.slug) || {};
-    bySlug.set(client.slug, normalizeClient({ ...existing, ...client }));
+    bySlug.set(client.slug, normalizeClient(mergeClientConfig(existing, client)));
   });
   return [...bySlug.values()].filter((client) => client.status !== 'DISABLED');
 }
