@@ -176,7 +176,7 @@ export async function handler(event) {
     const snapshot = await safeSnapshot(config, accessToken, events);
     const latestVisit = events.find((item) => item.eventType === 'PORTAL_VISIT') || null;
     const latestAction = events.find((item) => item.eventType !== 'PORTAL_VISIT') || null;
-    const tokenConfigured = Boolean(process.env[config.tokenHashEnv]);
+    const tokenConfigured = Boolean(config.tokenHash || process.env[config.tokenHashEnv]);
     const control = await readClientControl(clientSlug);
 
     return {

@@ -37,6 +37,24 @@ const testConfigs = buildServerClientConfigs(testRegistry);
 if (!testConfigs['test-client-auto-registration']) {
   errors.push('Test client did not auto-register into server configs.');
 }
+if (testConfigs['test-client-auto-registration']?.clientKey !== 'test-client-auto-registration') {
+  errors.push('Test client did not retain its client page key in server configs.');
+}
+
+const dynamicHashClient = buildServerClientConfigs([
+  {
+    slug: 'test-dynamic-token-client',
+    name: 'Test Dynamic Token Client',
+    campaignLabel: 'Test Dynamic Token Campaign',
+    clientKey: 'test-dynamic-token-client',
+    status: 'ACTIVE',
+    tokenHash: '0'.repeat(64),
+    mock: true,
+  },
+]);
+if (!dynamicHashClient['test-dynamic-token-client']?.tokenHash) {
+  errors.push('Dynamic token-hash client did not retain tokenHash in server configs.');
+}
 
 const timestamp = kuwaitTimestamp(new Date('2026-09-20T16:32:47.000Z'));
 if (!timestamp.includes('19:32:47')) {
