@@ -83,6 +83,15 @@ function adminEventType(action) {
   return null;
 }
 
+function clientPortalUrl(config, clientSlug) {
+  const slugPortalUrlEnv = {
+    'ghaseel-fahad-adel': 'GOOGLE_ADS_FAHAD_PORTAL_URL',
+    'lawyer-aisha-alawadhi': 'GOOGLE_ADS_AISHA_PORTAL_URL',
+    'lawyer-yousef-alabdali': 'GOOGLE_ADS_YOUSEF_PORTAL_URL',
+  };
+  return config.portalUrl || process.env[config.portalUrlEnv] || process.env[slugPortalUrlEnv[clientSlug]] || null;
+}
+
 async function handleAdminAction(event) {
   const body = JSON.parse(event.body || '{}');
   const action = body.action;
@@ -176,7 +185,7 @@ export async function handler(event) {
     const snapshot = await safeSnapshot(config, accessToken, events);
     const latestVisit = events.find((item) => item.eventType === 'PORTAL_VISIT') || null;
     const latestAction = events.find((item) => item.eventType !== 'PORTAL_VISIT') || null;
-    const portalUrl = config.portalUrl || process.env[config.portalUrlEnv] || null;
+    const portalUrl = clientPortalUrl(config, clientSlug);
     const control = await readClientControl(clientSlug);
 
     return {
