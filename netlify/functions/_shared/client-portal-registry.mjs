@@ -5,7 +5,7 @@ const registryStoreName = 'client-portal-registry';
 const registryKey = 'clients.json';
 
 function store() {
-  return getStore({ name: registryStoreName, consistency: 'strong' });
+  return getStore(registryStoreName);
 }
 
 function normalizeClient(client) {
@@ -25,7 +25,7 @@ function normalizeClient(client) {
 }
 
 export async function readDynamicClientPortalRegistry() {
-  const payload = await store().get(registryKey, { type: 'json', consistency: 'strong' });
+  const payload = await store().get(registryKey, { type: 'json' });
   return Array.isArray(payload) ? payload.map(normalizeClient) : [];
 }
 
