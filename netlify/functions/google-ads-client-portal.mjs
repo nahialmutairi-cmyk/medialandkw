@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { connectActivityStore, getDeviceType, getRequestIp, readClientControl, readMockCampaignStatus, recordClientActivity, setMockCampaignStatus } from './_shared/client-portal-activity.mjs';
+import { connectActivityStore, getDeviceType, getRequestIp, readClientActivity, readClientControl, readMockCampaignStatus, recordClientActivity, setMockCampaignStatus } from './_shared/client-portal-activity.mjs';
 import { readServerClientConfigs } from './_shared/client-portal-registry.mjs';
 import { sendOwnerCampaignNotification } from './_shared/owner-push-notifications.mjs';
 
@@ -145,6 +145,25 @@ function rateLimitAction(clientSlug, token) {
   if (attempts.length >= maxAttempts) throw new Error('Too many action attempts. Please wait and try again.');
   attempts.push(now);
   actionAttempts.set(key, attempts);
+}
+
+function inferStatusFromEvents(events) {
+  const latest = events.find((event) => [
+    'CAMPAIGN_ENABLED',
+    'CAMPAIGN_PAUSED',
+    'ADMIN_CAMPAIGN_ENABLED',
+    'ADMIN_CAMPAIGN_PAUSED',
+    'ADMIN_CAMPAIGN_PAUSED_AND_LOCKED',
+  ].includes(event.eventType));
+  if (!latest) return 'UNKNOWN';
+  if (latest.eventType.includes('ENABLED')) return 'ENABLED';
+  if (latest.eventType.includes('PAUSED')) return 'PAUSED';
+  return 'UNKNOWN';
+}
+
+function isQuotaError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /resource has been exhausted|quota/i.test(message);
 }
 
 async function notifyOwnerSafely(activityEvent) {
@@ -406,6 +425,34 @@ export async function handler(event) {
       controlUpdatedAt: control.updatedAt,
     });
   } catch (error) {
+    if (event.httpMethod === 'GET' && isQuotaError(error)) {
+      const events = await readClientActivity(clientSlug);
+      const control = await readClientControl(clientSlug);
+      const inferredStatus = inferStatusFromEvents(events);
+      console.warn(JSON.stringify({
+        client: config.name,
+        timestamp: new Date().toISOString(),
+        success: false,
+        fallback: 'activity_status',
+        error: error instanceof Error ? error.message : String(error),
+      }));
+
+      return json(200, {
+        ok: true,
+        connected: true,
+        liveDataAvailable: false,
+        clientName: config.name,
+        campaignName: config.name,
+        status: inferredStatus,
+        dateRange: event.queryStringParameters?.range || 'LAST_7_DAYS',
+        metrics: { impressions: null, clicks: null, ctr: null, conversions: null, conversionRate: null },
+        lookerEmbedUrl: process.env[config.lookerEnv] || null,
+        clientControlEnabled: control.clientControlEnabled,
+        controlUpdatedAt: control.updatedAt,
+        message: 'بيانات Google Ads الحية غير متاحة مؤقتاً بسبب حد الاستخدام. تظهر آخر حالة مؤكدة من الأرشيف.',
+      });
+    }
+
     console.error(JSON.stringify({
       client: config.name,
       timestamp: new Date().toISOString(),

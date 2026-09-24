@@ -39,7 +39,21 @@ function startOfKuwaitDayUtc() {
   return Date.parse(`${year}-${month}-${day}T00:00:00+03:00`);
 }
 
-async function safeSnapshot(config, accessToken) {
+function inferStatusFromEvents(events) {
+  const latest = events.find((event) => [
+    'CAMPAIGN_ENABLED',
+    'CAMPAIGN_PAUSED',
+    'ADMIN_CAMPAIGN_ENABLED',
+    'ADMIN_CAMPAIGN_PAUSED',
+    'ADMIN_CAMPAIGN_PAUSED_AND_LOCKED',
+  ].includes(event.eventType));
+  if (!latest) return 'UNKNOWN';
+  if (latest.eventType.includes('ENABLED')) return 'ENABLED';
+  if (latest.eventType.includes('PAUSED')) return 'PAUSED';
+  return 'UNKNOWN';
+}
+
+async function safeSnapshot(config, accessToken, events = []) {
   try {
     if (config.mock) {
       return { status: await readMockCampaignStatus(config.slug), campaignName: config.name, connected: true };
@@ -50,7 +64,13 @@ async function safeSnapshot(config, accessToken) {
     const snapshot = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
     return { status: snapshot.status, campaignName: snapshot.campaignName, connected: true };
   } catch {
-    return { status: 'UNKNOWN', campaignName: config.name, connected: false };
+    const inferredStatus = inferStatusFromEvents(events);
+    return {
+      status: inferredStatus,
+      campaignName: config.name,
+      connected: inferredStatus !== 'UNKNOWN',
+      liveDataAvailable: false,
+    };
   }
 }
 
@@ -153,7 +173,7 @@ export async function handler(event) {
 
   const todayStart = startOfKuwaitDayUtc();
   const clients = await Promise.all(activities.map(async ({ clientSlug, config, events }) => {
-    const snapshot = await safeSnapshot(config, accessToken);
+    const snapshot = await safeSnapshot(config, accessToken, events);
     const latestVisit = events.find((item) => item.eventType === 'PORTAL_VISIT') || null;
     const latestAction = events.find((item) => item.eventType !== 'PORTAL_VISIT') || null;
     const tokenConfigured = Boolean(process.env[config.tokenHashEnv]);
@@ -168,6 +188,7 @@ export async function handler(event) {
       campaignStatus: snapshot.status,
       campaignEnabled: snapshot.status === 'ENABLED',
       connected: snapshot.connected,
+      liveDataAvailable: snapshot.liveDataAvailable !== false,
       portalPath: tokenConfigured ? `/portal/${clientSlug}/` : null,
       clientPagePath: config.clientKey ? `/clients/${config.clientKey}/` : null,
       clientControlEnabled: control.clientControlEnabled,
