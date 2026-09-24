@@ -19,6 +19,8 @@ function normalizeClient(client) {
     campaignIdEnv: client.campaignIdEnv || null,
     tokenHashEnv: client.tokenHashEnv || null,
     tokenHash: client.tokenHash || null,
+    portalUrlEnv: client.portalUrlEnv || null,
+    portalUrl: client.portalUrl || null,
     lookerEnv: client.lookerEnv || null,
     mock: Boolean(client.mock),
   };

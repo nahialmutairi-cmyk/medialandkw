@@ -29,6 +29,7 @@ const testRegistry = [
     customerIdEnv: 'TEST_CLIENT_CUSTOMER_ID',
     campaignIdEnv: 'TEST_CLIENT_CAMPAIGN_ID',
     tokenHashEnv: 'TEST_CLIENT_PORTAL_TOKEN_SHA256',
+    portalUrlEnv: 'TEST_CLIENT_PORTAL_URL',
     lookerEnv: 'TEST_CLIENT_LOOKER_URL',
   },
 ];
@@ -40,6 +41,9 @@ if (!testConfigs['test-client-auto-registration']) {
 if (testConfigs['test-client-auto-registration']?.clientKey !== 'test-client-auto-registration') {
   errors.push('Test client did not retain its client page key in server configs.');
 }
+if (testConfigs['test-client-auto-registration']?.portalUrlEnv !== 'TEST_CLIENT_PORTAL_URL') {
+  errors.push('Test client did not retain its portal URL environment key in server configs.');
+}
 
 const dynamicHashClient = buildServerClientConfigs([
   {
@@ -49,11 +53,15 @@ const dynamicHashClient = buildServerClientConfigs([
     clientKey: 'test-dynamic-token-client',
     status: 'ACTIVE',
     tokenHash: '0'.repeat(64),
+    portalUrl: 'https://medialandkw.online/portal/test-dynamic-token-client/example-token/',
     mock: true,
   },
 ]);
 if (!dynamicHashClient['test-dynamic-token-client']?.tokenHash) {
   errors.push('Dynamic token-hash client did not retain tokenHash in server configs.');
+}
+if (!dynamicHashClient['test-dynamic-token-client']?.portalUrl?.includes('/portal/test-dynamic-token-client/')) {
+  errors.push('Dynamic token-hash client did not retain its real portal URL in server configs.');
 }
 
 const timestamp = kuwaitTimestamp(new Date('2026-09-20T16:32:47.000Z'));

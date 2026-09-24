@@ -26,7 +26,6 @@ type PortalResponse = {
   liveDataAvailable?: boolean;
   clientControlEnabled?: boolean;
   controlUpdatedAt?: string | null;
-  adminPreview?: boolean;
 };
 
 const rangeOptions = [
@@ -119,7 +118,6 @@ export function GoogleAdsClientPortal() {
   const actionLabel = nextAction === 'PAUSE' ? 'إيقاف الحملة' : 'تشغيل الحملة';
   const lookerUrl = data?.lookerEmbedUrl ?? config?.lookerEmbedUrl;
   const clientControlEnabled = data?.clientControlEnabled !== false;
-  const adminPreview = data?.adminPreview === true;
   const liveDataUnavailable = data?.liveDataAvailable === false;
   const lockMessage = 'تم تعليق التحكم بالحملة من قبل إدارة Media Land. يرجى التواصل مع الإدارة لإجراء أي تغيير.';
 
@@ -223,7 +221,7 @@ export function GoogleAdsClientPortal() {
               </div>
               {!clientControlEnabled && (
                 <div className="mb-3 rounded-xl border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-xs font-bold leading-6 text-amber-100">
-                  🔒 {adminPreview ? 'هذه معاينة إدارية آمنة للبوابة. استخدم لوحة الإدارة لتشغيل أو إيقاف الحملة.' : lockMessage}
+                  🔒 {lockMessage}
                 </div>
               )}
               {liveDataUnavailable && (
@@ -232,12 +230,12 @@ export function GoogleAdsClientPortal() {
                 </div>
               )}
               <button
-                disabled={!nextAction || actionLoading || loading || !data?.connected || !clientControlEnabled || liveDataUnavailable || adminPreview}
+                disabled={!nextAction || actionLoading || loading || !data?.connected || !clientControlEnabled || liveDataUnavailable}
                 onClick={() => nextAction && setConfirmAction(nextAction)}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-4 text-sm font-black text-[#080910] transition hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/25 disabled:text-white/45"
               >
                 {nextAction === 'PAUSE' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                <span>{adminPreview ? 'معاينة إدارية فقط' : !clientControlEnabled ? 'التحكم معلق من الإدارة' : liveDataUnavailable ? 'التحكم متوقف مؤقتاً لحين عودة البيانات الحية' : data?.connected ? actionLabel : 'Google Ads غير متصل'}</span>
+                <span>{!clientControlEnabled ? 'التحكم معلق من الإدارة' : liveDataUnavailable ? 'التحكم متوقف مؤقتاً لحين عودة البيانات الحية' : data?.connected ? actionLabel : 'Google Ads غير متصل'}</span>
               </button>
               {notice && <p className="mt-3 rounded-xl bg-white/[0.04] px-4 py-3 text-xs text-white/65">{notice}</p>}
               {!data?.connected && !loading && (

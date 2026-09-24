@@ -8,6 +8,7 @@ export const clientPortalRegistry = [
     customerIdEnv: 'GOOGLE_ADS_FAHAD_CUSTOMER_ID',
     campaignIdEnv: 'GOOGLE_ADS_FAHAD_CAMPAIGN_ID',
     tokenHashEnv: 'GOOGLE_ADS_FAHAD_PORTAL_TOKEN_SHA256',
+    portalUrlEnv: 'GOOGLE_ADS_FAHAD_PORTAL_URL',
     lookerEnv: 'LOOKER_STUDIO_FAHAD_EMBED_URL',
   },
   {
@@ -19,6 +20,7 @@ export const clientPortalRegistry = [
     customerIdEnv: 'GOOGLE_ADS_AISHA_CUSTOMER_ID',
     campaignIdEnv: 'GOOGLE_ADS_AISHA_CAMPAIGN_ID',
     tokenHashEnv: 'GOOGLE_ADS_AISHA_PORTAL_TOKEN_SHA256',
+    portalUrlEnv: 'GOOGLE_ADS_AISHA_PORTAL_URL',
     lookerEnv: 'LOOKER_STUDIO_AISHA_EMBED_URL',
   },
   {
@@ -30,6 +32,7 @@ export const clientPortalRegistry = [
     customerIdEnv: 'GOOGLE_ADS_YOUSEF_CUSTOMER_ID',
     campaignIdEnv: 'GOOGLE_ADS_YOUSEF_CAMPAIGN_ID',
     tokenHashEnv: 'GOOGLE_ADS_YOUSEF_PORTAL_TOKEN_SHA256',
+    portalUrlEnv: 'GOOGLE_ADS_YOUSEF_PORTAL_URL',
     lookerEnv: 'LOOKER_STUDIO_YOUSEF_EMBED_URL',
   },
 ];
@@ -52,6 +55,8 @@ export function buildServerClientConfigs(registry = clientPortalRegistry) {
         campaignIdEnv: client.campaignIdEnv,
         tokenHashEnv: client.tokenHashEnv,
         tokenHash: client.tokenHash,
+        portalUrlEnv: client.portalUrlEnv,
+        portalUrl: client.portalUrl,
         lookerEnv: client.lookerEnv,
         mock: Boolean(client.mock),
       },
