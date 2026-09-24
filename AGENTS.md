@@ -6,4 +6,5 @@
 - Client campaign controls must be enforced server-side. When `clientControlEnabled` is false, client portal enable/pause requests must be rejected even if the endpoint is called directly.
 - Owner/admin actions must require `X-Admin-Portal-Key` and must log permanent events with actor `ADMIN`.
 - Client portal visits and client enable/pause actions must log permanent events with actor `CLIENT`, Kuwait time, seconds, and visit IP/device data.
+- MEDIA LAND PUSH NOTIFICATION RULE: Any future Client Portal registered in Central Client Registry automatically participates in the central notification system. Confirmed CLIENT campaign ENABLE/PAUSE events generate Owner Push Notifications. No hardcoded client notification configuration. Admin actions do not generate owner push notifications by default. Notifications are sent only after confirmed Google Ads state change. Push failures must never roll back successful Google Ads actions.
 - Do not commit OAuth secrets, Google Ads tokens, developer tokens, client secrets, refresh tokens, signing passwords, keystores, or live portal tokens.

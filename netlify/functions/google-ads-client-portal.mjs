@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { connectActivityStore, getDeviceType, getRequestIp, readClientControl, readMockCampaignStatus, recordClientActivity, setMockCampaignStatus } from './_shared/client-portal-activity.mjs';
 import { readServerClientConfigs } from './_shared/client-portal-registry.mjs';
+import { sendOwnerCampaignNotification } from './_shared/owner-push-notifications.mjs';
 
 const allowedRanges = new Set(['TODAY', 'LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH']);
 const actionAttempts = new Map();
@@ -146,6 +147,18 @@ function rateLimitAction(clientSlug, token) {
   actionAttempts.set(key, attempts);
 }
 
+async function notifyOwnerSafely(activityEvent) {
+  try {
+    await sendOwnerCampaignNotification(activityEvent);
+  } catch (error) {
+    console.warn(JSON.stringify({
+      push: 'owner_notification_failed',
+      eventId: activityEvent?.id || null,
+      error: error instanceof Error ? error.message : String(error),
+    }));
+  }
+}
+
 export async function updateCampaignStatus({ accessToken, customerId, campaignId, status }) {
   const response = await fetch(`https://googleads.googleapis.com/v25/customers/${customerId}/campaigns:mutate`, {
     method: 'POST',
@@ -233,13 +246,14 @@ export async function handler(event) {
         }
         const status = action === 'ENABLE' ? 'ENABLED' : 'PAUSED';
         await setMockCampaignStatus(clientSlug, status);
-        await recordClientActivity({
+        const recorded = await recordClientActivity({
           clientSlug,
           clientName: config.name,
           campaignId: 'MOCK',
           eventType: action === 'ENABLE' ? 'CAMPAIGN_ENABLED' : 'CAMPAIGN_PAUSED',
           actor: 'CLIENT',
         });
+        if (recorded.event) await notifyOwnerSafely(recorded.event);
         return json(200, {
           ok: true,
           connected: true,
@@ -304,13 +318,37 @@ export async function handler(event) {
       await updateCampaignStatus({ accessToken, customerId, campaignId, status: action === 'ENABLE' ? 'ENABLED' : 'PAUSED' });
       const after = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
       const confirmedStatus = action === 'ENABLE' ? 'ENABLED' : 'PAUSED';
-      await recordClientActivity({
+      if (after.status !== confirmedStatus) {
+        console.warn(JSON.stringify({
+          client: config.name,
+          action,
+          previousStatus: before.status,
+          newStatus: after.status,
+          expectedStatus: confirmedStatus,
+          timestamp: new Date().toISOString(),
+          success: false,
+        }));
+        return json(502, {
+          ok: false,
+          connected: true,
+          clientName: config.name,
+          campaignName: after.campaignName,
+          status: after.status,
+          dateRange: after.dateRange,
+          metrics: after.metrics,
+          lookerEmbedUrl: process.env[config.lookerEnv] || null,
+          clientControlEnabled: true,
+          message: 'Google Ads did not confirm the requested campaign state.',
+        });
+      }
+      const recorded = await recordClientActivity({
         clientSlug,
         clientName: config.name,
         campaignId,
         eventType: action === 'ENABLE' ? 'CAMPAIGN_ENABLED' : 'CAMPAIGN_PAUSED',
         actor: 'CLIENT',
       });
+      if (recorded.event) await notifyOwnerSafely(recorded.event);
       console.info(JSON.stringify({
         client: config.name,
         action,
