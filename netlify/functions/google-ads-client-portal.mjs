@@ -354,7 +354,7 @@ function inferStatusFromEvents(events) {
 
 function isQuotaError(error) {
   const message = error instanceof Error ? error.message : String(error);
-  return /resource has been exhausted|quota/i.test(message);
+  return /resource has been exhausted|quota|temporarily suppressed/i.test(message);
 }
 
 async function notifyOwnerSafely(activityEvent) {
