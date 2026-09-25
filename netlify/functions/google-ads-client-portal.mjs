@@ -9,6 +9,7 @@ const actionAttempts = new Map();
 const inFlightSnapshots = new Map();
 const snapshotCacheStoreName = 'google-ads-snapshot-cache';
 const cacheMetricsStoreName = 'google-ads-cache-metrics';
+const cacheMetricEventsStoreName = 'google-ads-cache-metric-events';
 const cacheMetricsKey = 'counters.json';
 
 function snapshotCacheStore() {
@@ -17,6 +18,10 @@ function snapshotCacheStore() {
 
 function cacheMetricsStore() {
   return getStore(cacheMetricsStoreName);
+}
+
+function cacheMetricEventsStore() {
+  return getStore(cacheMetricEventsStoreName);
 }
 
 function json(statusCode, body) {
@@ -150,12 +155,11 @@ export async function updateCachedCampaignStatus(customerId, campaignId, status)
 
 async function incrementCacheMetric(name, amount = 1) {
   try {
-    const current = await cacheMetricsStore().get(cacheMetricsKey, { type: 'json' });
-    const counters = current?.counters || {};
-    counters[name] = Number(counters[name] || 0) + amount;
-    await cacheMetricsStore().setJSON(cacheMetricsKey, {
-      counters,
-      updatedAt: new Date().toISOString(),
+    const now = new Date().toISOString();
+    await cacheMetricEventsStore().setJSON(`${now}-${crypto.randomUUID()}.json`, {
+      name,
+      amount,
+      occurredAt: now,
     });
   } catch {
     // Metrics must never affect portal behavior.
@@ -163,8 +167,15 @@ async function incrementCacheMetric(name, amount = 1) {
 }
 
 export async function readGoogleAdsCacheMetrics() {
-  const current = await cacheMetricsStore().get(cacheMetricsKey, { type: 'json' });
-  return current?.counters || {};
+  const legacy = await cacheMetricsStore().get(cacheMetricsKey, { type: 'json' });
+  const counters = { ...(legacy?.counters || {}) };
+  const listed = await cacheMetricEventsStore().list();
+  await Promise.all((listed.blobs || []).map(async (blob) => {
+    const event = await cacheMetricEventsStore().get(blob.key, { type: 'json' });
+    if (!event?.name) return;
+    counters[event.name] = Number(counters[event.name] || 0) + Number(event.amount || 1);
+  }));
+  return counters;
 }
 
 function rangeTtlMs(range, isCustom) {
