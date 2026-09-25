@@ -156,11 +156,20 @@ export async function updateCachedCampaignStatus(customerId, campaignId, status)
 async function incrementCacheMetric(name, amount = 1) {
   try {
     const now = new Date().toISOString();
-    await cacheMetricEventsStore().setJSON(`${Date.now()}-${crypto.randomUUID()}.json`, {
-      name,
-      amount,
-      occurredAt: now,
-    });
+    const current = await cacheMetricsStore().get(cacheMetricsKey, { type: 'json' });
+    const counters = current?.counters || {};
+    counters[name] = Number(counters[name] || 0) + amount;
+    await Promise.all([
+      cacheMetricsStore().setJSON(cacheMetricsKey, {
+        counters,
+        updatedAt: now,
+      }),
+      cacheMetricEventsStore().setJSON(`${Date.now()}-${crypto.randomUUID()}.json`, {
+        name,
+        amount,
+        occurredAt: now,
+      }),
+    ]);
   } catch {
     // Metrics must never affect portal behavior.
   }
