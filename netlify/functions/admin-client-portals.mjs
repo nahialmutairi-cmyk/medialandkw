@@ -62,7 +62,7 @@ async function safeSnapshot(config, accessToken, events = []) {
     const campaignId = process.env[config.campaignIdEnv];
     if (!customerId || !campaignId || !accessToken) return { status: 'UNKNOWN', campaignName: config.name, connected: false };
     const snapshot = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
-    return { status: snapshot.status, campaignName: snapshot.campaignName, connected: true };
+    return { status: snapshot.status, campaignName: snapshot.campaignName, connected: true, liveDataAvailable: snapshot.liveDataAvailable !== false };
   } catch {
     const inferredStatus = inferStatusFromEvents(events);
     return {

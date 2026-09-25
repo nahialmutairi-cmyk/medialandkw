@@ -1,10 +1,16 @@
 import crypto from 'node:crypto';
+import { getStore } from '@netlify/blobs';
 import { connectActivityStore, getDeviceType, getRequestIp, readClientActivity, readClientControl, readMockCampaignStatus, recordClientActivity, setMockCampaignStatus } from './_shared/client-portal-activity.mjs';
 import { readServerClientConfigs } from './_shared/client-portal-registry.mjs';
 import { sendOwnerCampaignNotification } from './_shared/owner-push-notifications.mjs';
 
 const allowedRanges = new Set(['TODAY', 'LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH']);
 const actionAttempts = new Map();
+const snapshotCacheStoreName = 'google-ads-snapshot-cache';
+
+function snapshotCacheStore() {
+  return getStore(snapshotCacheStoreName);
+}
 
 function json(statusCode, body) {
   return {
@@ -90,9 +96,39 @@ export async function googleAdsSearch({ accessToken, customerId, query }) {
   return payload.results || [];
 }
 
-export async function getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange, startDate, endDate, fallbackName }) {
+function snapshotCacheKey({ customerId, campaignId, range, startDate, endDate }) {
+  const hash = sha256(JSON.stringify({ customerId, campaignId, range, startDate: startDate || null, endDate: endDate || null }));
+  return `${customerId}-${campaignId}-${hash}.json`;
+}
+
+function snapshotCacheTtlMs() {
+  const seconds = Number(process.env.GOOGLE_ADS_SNAPSHOT_CACHE_SECONDS || 300);
+  return Math.max(60, Number.isFinite(seconds) ? seconds : 300) * 1000;
+}
+
+async function readCachedSnapshot(key) {
+  const cached = await snapshotCacheStore().get(key, { type: 'json' });
+  if (!cached?.snapshot || !cached.cachedAt) return null;
+  return cached;
+}
+
+async function writeCachedSnapshot(key, snapshot) {
+  await snapshotCacheStore().setJSON(key, {
+    cachedAt: new Date().toISOString(),
+    snapshot,
+  });
+}
+
+export async function getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange, startDate, endDate, fallbackName, bypassCache = false }) {
   const range = allowedRanges.has(dateRange) ? dateRange : 'LAST_7_DAYS';
   const isCustom = dateRange === 'CUSTOM_DATE' && /^\d{4}-\d{2}-\d{2}$/.test(startDate || '') && /^\d{4}-\d{2}-\d{2}$/.test(endDate || '');
+  const cacheKey = snapshotCacheKey({ customerId, campaignId, range: isCustom ? 'CUSTOM_DATE' : range, startDate, endDate });
+  const cached = await readCachedSnapshot(cacheKey);
+
+  if (!bypassCache && cached && Date.now() - Date.parse(cached.cachedAt) < snapshotCacheTtlMs()) {
+    return { ...cached.snapshot, cached: true, liveDataAvailable: true };
+  }
+
   const dateFilter = isCustom
     ? `segments.date BETWEEN '${startDate}' AND '${endDate}'`
     : `segments.date DURING ${range}`;
@@ -112,9 +148,17 @@ export async function getCampaignSnapshot({ accessToken, customerId, campaignId,
     LIMIT 1
   `;
 
-  const rows = await googleAdsSearch({ accessToken, customerId, query });
+  let rows = [];
+  try {
+    rows = await googleAdsSearch({ accessToken, customerId, query });
+  } catch (error) {
+    if (cached?.snapshot) {
+      return { ...cached.snapshot, cached: true, stale: true, liveDataAvailable: false };
+    }
+    throw error;
+  }
   const first = rows[0] || {};
-  return {
+  const snapshot = {
     campaignName: first.campaign?.name || fallbackName,
     status: first.campaign?.status || 'UNKNOWN',
     dateRange: isCustom ? 'CUSTOM_DATE' : range,
@@ -125,7 +169,10 @@ export async function getCampaignSnapshot({ accessToken, customerId, campaignId,
       conversions: first.metrics?.conversions === undefined ? null : Number(first.metrics.conversions),
       conversionRate: first.metrics?.conversionsFromInteractionsRate === undefined ? null : Number(first.metrics.conversionsFromInteractionsRate) * 100,
     },
+    liveDataAvailable: true,
   };
+  await writeCachedSnapshot(cacheKey, snapshot);
+  return snapshot;
 }
 
 function verifyWriteOrigin(event) {
@@ -353,7 +400,7 @@ export async function handler(event) {
       await updateCampaignStatus({ accessToken, customerId, campaignId, status: confirmedStatus });
 
       try {
-        after = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
+        after = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name, bypassCache: true });
       } catch (error) {
         console.warn(JSON.stringify({
           client: config.name,
@@ -364,7 +411,7 @@ export async function handler(event) {
         }));
       }
 
-      if (after && after.status !== confirmedStatus) {
+      if (after && !after.stale && after.status !== confirmedStatus) {
         console.warn(JSON.stringify({
           client: config.name,
           action,
@@ -399,9 +446,9 @@ export async function handler(event) {
         client: config.name,
         action,
         previousStatus: before?.status || 'UNKNOWN',
-        newStatus: after?.status || confirmedStatus,
+        newStatus: after?.stale ? confirmedStatus : after?.status || confirmedStatus,
         timestamp: new Date().toISOString(),
-        success: after ? after.status === confirmedStatus : true,
+        success: after && !after.stale ? after.status === confirmedStatus : true,
       }));
 
       return json(200, {
@@ -409,13 +456,13 @@ export async function handler(event) {
         connected: true,
         clientName: config.name,
         campaignName: after?.campaignName || config.name,
-        status: after?.status || confirmedStatus,
+        status: after?.stale ? confirmedStatus : after?.status || confirmedStatus,
         dateRange: after?.dateRange || 'TODAY',
         metrics: after?.metrics || { impressions: null, clicks: null, ctr: null, conversions: null, conversionRate: null },
-        liveDataAvailable: Boolean(after),
+        liveDataAvailable: after ? after.liveDataAvailable !== false : false,
         lookerEmbedUrl: process.env[config.lookerEnv] || null,
         clientControlEnabled: true,
-        message: after ? undefined : 'تم تنفيذ الطلب في Google Ads. تقارير Google Ads الحية غير متاحة مؤقتاً، وتم تحديث الحالة من الأرشيف.',
+        message: after?.liveDataAvailable !== false ? undefined : 'تم تنفيذ الطلب في Google Ads. تقارير Google Ads الحية غير متاحة مؤقتاً، وتم تحديث الحالة من الأرشيف.',
       });
     }
 
@@ -450,6 +497,7 @@ export async function handler(event) {
       status: snapshot.status,
       dateRange: snapshot.dateRange,
       metrics: snapshot.metrics,
+      liveDataAvailable: snapshot.liveDataAvailable !== false,
       lookerEmbedUrl: process.env[config.lookerEnv] || null,
       clientControlEnabled: control.clientControlEnabled,
       controlUpdatedAt: control.updatedAt,
