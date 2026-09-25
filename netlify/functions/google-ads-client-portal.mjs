@@ -6,10 +6,17 @@ import { sendOwnerCampaignNotification } from './_shared/owner-push-notification
 
 const allowedRanges = new Set(['TODAY', 'LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH']);
 const actionAttempts = new Map();
+const inFlightSnapshots = new Map();
 const snapshotCacheStoreName = 'google-ads-snapshot-cache';
+const cacheMetricsStoreName = 'google-ads-cache-metrics';
+const cacheMetricsKey = 'counters.json';
 
 function snapshotCacheStore() {
   return getStore(snapshotCacheStoreName);
+}
+
+function cacheMetricsStore() {
+  return getStore(cacheMetricsStoreName);
 }
 
 function json(statusCode, body) {
@@ -119,13 +126,86 @@ async function writeCachedSnapshot(key, snapshot) {
   });
 }
 
+export async function updateCachedCampaignStatus(customerId, campaignId, status) {
+  try {
+    const prefix = `${customerId}-${campaignId}-`;
+    const listed = await snapshotCacheStore().list({ prefix });
+    await Promise.all((listed.blobs || []).map(async (blob) => {
+      const cached = await snapshotCacheStore().get(blob.key, { type: 'json' });
+      if (!cached?.snapshot) return;
+      await snapshotCacheStore().setJSON(blob.key, {
+        ...cached,
+        cachedAt: new Date().toISOString(),
+        snapshot: {
+          ...cached.snapshot,
+          status,
+          liveDataAvailable: cached.snapshot.liveDataAvailable !== false,
+        },
+      });
+    }));
+  } catch {
+    // Cache repair must not block real Google Ads mutations.
+  }
+}
+
+async function incrementCacheMetric(name, amount = 1) {
+  try {
+    const current = await cacheMetricsStore().get(cacheMetricsKey, { type: 'json' });
+    const counters = current?.counters || {};
+    counters[name] = Number(counters[name] || 0) + amount;
+    await cacheMetricsStore().setJSON(cacheMetricsKey, {
+      counters,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch {
+    // Metrics must never affect portal behavior.
+  }
+}
+
+export async function readGoogleAdsCacheMetrics() {
+  const current = await cacheMetricsStore().get(cacheMetricsKey, { type: 'json' });
+  return current?.counters || {};
+}
+
+function rangeTtlMs(range, isCustom) {
+  if (isCustom) return 10 * 60_000;
+  if (range === 'TODAY') return 3 * 60_000;
+  if (range === 'LAST_7_DAYS') return 7 * 60_000;
+  if (range === 'LAST_30_DAYS' || range === 'THIS_MONTH') return 10 * 60_000;
+  if (range === 'LAST_MONTH') return 12 * 60 * 60_000;
+  return snapshotCacheTtlMs();
+}
+
+async function fetchAndCacheCampaignSnapshot({ cacheKey, accessToken, customerId, campaignId, query, fallbackName, dateRange }) {
+  await incrementCacheMetric('googleAdsReads');
+  const rows = await googleAdsSearch({ accessToken, customerId, query });
+  const first = rows[0] || {};
+  const snapshot = {
+    campaignName: first.campaign?.name || fallbackName,
+    status: first.campaign?.status || 'UNKNOWN',
+    dateRange,
+    metrics: {
+      impressions: Number(first.metrics?.impressions ?? 0),
+      clicks: Number(first.metrics?.clicks ?? 0),
+      ctr: first.metrics?.ctr === undefined ? null : Number(first.metrics.ctr) * 100,
+      conversions: first.metrics?.conversions === undefined ? null : Number(first.metrics.conversions),
+      conversionRate: first.metrics?.conversionsFromInteractionsRate === undefined ? null : Number(first.metrics.conversionsFromInteractionsRate) * 100,
+    },
+    liveDataAvailable: true,
+  };
+  await writeCachedSnapshot(cacheKey, snapshot);
+  return snapshot;
+}
+
 export async function getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange, startDate, endDate, fallbackName, bypassCache = false }) {
+  await incrementCacheMetric('backendReads');
   const range = allowedRanges.has(dateRange) ? dateRange : 'LAST_7_DAYS';
   const isCustom = dateRange === 'CUSTOM_DATE' && /^\d{4}-\d{2}-\d{2}$/.test(startDate || '') && /^\d{4}-\d{2}-\d{2}$/.test(endDate || '');
   const cacheKey = snapshotCacheKey({ customerId, campaignId, range: isCustom ? 'CUSTOM_DATE' : range, startDate, endDate });
   const cached = await readCachedSnapshot(cacheKey);
 
-  if (!bypassCache && cached && Date.now() - Date.parse(cached.cachedAt) < snapshotCacheTtlMs()) {
+  if (!bypassCache && cached && Date.now() - Date.parse(cached.cachedAt) < rangeTtlMs(range, isCustom)) {
+    await incrementCacheMetric('cacheHits');
     return { ...cached.snapshot, cached: true, liveDataAvailable: true };
   }
 
@@ -148,31 +228,46 @@ export async function getCampaignSnapshot({ accessToken, customerId, campaignId,
     LIMIT 1
   `;
 
-  let rows = [];
+  const refresh = async () => fetchAndCacheCampaignSnapshot({
+    cacheKey,
+    accessToken,
+    customerId,
+    campaignId,
+    query,
+    fallbackName,
+    dateRange: isCustom ? 'CUSTOM_DATE' : range,
+  });
+
+  if (!bypassCache && cached?.snapshot) {
+    await incrementCacheMetric('staleResponsesServed');
+    if (!inFlightSnapshots.has(cacheKey)) {
+      const pending = refresh()
+        .catch(() => null)
+        .finally(() => inFlightSnapshots.delete(cacheKey));
+      inFlightSnapshots.set(cacheKey, pending);
+    } else {
+      await incrementCacheMetric('coalescedRequests');
+    }
+    return { ...cached.snapshot, cached: true, stale: true, liveDataAvailable: false };
+  }
+
+  if (inFlightSnapshots.has(cacheKey)) {
+    await incrementCacheMetric('coalescedRequests');
+    return inFlightSnapshots.get(cacheKey);
+  }
+
+  await incrementCacheMetric('cacheMisses');
+  const pending = refresh().finally(() => inFlightSnapshots.delete(cacheKey));
+  inFlightSnapshots.set(cacheKey, pending);
   try {
-    rows = await googleAdsSearch({ accessToken, customerId, query });
+    return await pending;
   } catch (error) {
     if (cached?.snapshot) {
+      await incrementCacheMetric('staleResponsesServed');
       return { ...cached.snapshot, cached: true, stale: true, liveDataAvailable: false };
     }
     throw error;
   }
-  const first = rows[0] || {};
-  const snapshot = {
-    campaignName: first.campaign?.name || fallbackName,
-    status: first.campaign?.status || 'UNKNOWN',
-    dateRange: isCustom ? 'CUSTOM_DATE' : range,
-    metrics: {
-      impressions: Number(first.metrics?.impressions ?? 0),
-      clicks: Number(first.metrics?.clicks ?? 0),
-      ctr: first.metrics?.ctr === undefined ? null : Number(first.metrics.ctr) * 100,
-      conversions: first.metrics?.conversions === undefined ? null : Number(first.metrics.conversions),
-      conversionRate: first.metrics?.conversionsFromInteractionsRate === undefined ? null : Number(first.metrics.conversionsFromInteractionsRate) * 100,
-    },
-    liveDataAvailable: true,
-  };
-  await writeCachedSnapshot(cacheKey, snapshot);
-  return snapshot;
 }
 
 function verifyWriteOrigin(event) {
@@ -226,6 +321,7 @@ async function notifyOwnerSafely(activityEvent) {
 }
 
 export async function updateCampaignStatus({ accessToken, customerId, campaignId, status }) {
+  await incrementCacheMetric('googleAdsMutations');
   const response = await fetch(`https://googleads.googleapis.com/v25/customers/${customerId}/campaigns:mutate`, {
     method: 'POST',
     headers: googleAdsHeaders(accessToken),
@@ -398,6 +494,7 @@ export async function handler(event) {
       }
 
       await updateCampaignStatus({ accessToken, customerId, campaignId, status: confirmedStatus });
+      await updateCachedCampaignStatus(customerId, campaignId, confirmedStatus);
 
       try {
         after = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name, bypassCache: true });

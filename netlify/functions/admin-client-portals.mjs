@@ -10,7 +10,7 @@ import {
   setMockCampaignStatus,
 } from './_shared/client-portal-activity.mjs';
 import { readServerClientConfigs, upsertDynamicClientPortal } from './_shared/client-portal-registry.mjs';
-import { getCampaignSnapshot, refreshAccessToken, updateCampaignStatus } from './google-ads-client-portal.mjs';
+import { getCampaignSnapshot, readGoogleAdsCacheMetrics, refreshAccessToken, updateCachedCampaignStatus, updateCampaignStatus } from './google-ads-client-portal.mjs';
 import { sha256 } from './_shared/client-portal-activity.mjs';
 
 function json(statusCode, body) {
@@ -148,11 +148,17 @@ async function handleAdminAction(event) {
   const accessToken = config.mock ? null : await refreshAccessToken();
   if (action === 'ENABLE') {
     if (config.mock) await setMockCampaignStatus(clientSlug, 'ENABLED');
-    else await updateCampaignStatus({ accessToken, customerId, campaignId, status: 'ENABLED' });
+    else {
+      await updateCampaignStatus({ accessToken, customerId, campaignId, status: 'ENABLED' });
+      await updateCachedCampaignStatus(customerId, campaignId, 'ENABLED');
+    }
   }
   if (action === 'PAUSE' || action === 'PAUSE_AND_LOCK') {
     if (config.mock) await setMockCampaignStatus(clientSlug, 'PAUSED');
-    else await updateCampaignStatus({ accessToken, customerId, campaignId, status: 'PAUSED' });
+    else {
+      await updateCampaignStatus({ accessToken, customerId, campaignId, status: 'PAUSED' });
+      await updateCachedCampaignStatus(customerId, campaignId, 'PAUSED');
+    }
   }
   if (action === 'LOCK' || action === 'PAUSE_AND_LOCK') {
     await setClientControl(clientSlug, false);
@@ -249,10 +255,12 @@ export async function handler(event) {
 
   const allEvents = clients.flatMap((client) => client.events);
   const todayEvents = allEvents.filter((item) => Date.parse(item.occurredAt) >= todayStart);
+  const cacheMetrics = await readGoogleAdsCacheMetrics();
 
   return json(200, {
     ok: true,
     eventTypes: activityEventTypes,
+    cacheMetrics,
     summary: {
       clients: clients.length,
       visitsToday: todayEvents.filter((item) => item.eventType === 'PORTAL_VISIT').length,

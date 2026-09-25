@@ -192,7 +192,7 @@ export function AdminClientPortals() {
     const timer = window.setInterval(() => {
       const saved = sessionStorage.getItem('ml_admin_portal_key');
       if (saved) void load(saved);
-    }, 20_000);
+    }, 120_000);
     return () => window.clearInterval(timer);
   }, []);
 
