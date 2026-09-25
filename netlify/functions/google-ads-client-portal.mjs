@@ -124,6 +124,22 @@ async function readCachedSnapshot(key) {
   return cached;
 }
 
+async function readCachedSnapshotError(key) {
+  return snapshotCacheStore().get(`${key}.error.json`, { type: 'json' });
+}
+
+async function writeCachedSnapshotError(key, error) {
+  await snapshotCacheStore().setJSON(`${key}.error.json`, {
+    errorAt: new Date().toISOString(),
+    message: error instanceof Error ? error.message : String(error),
+  });
+}
+
+function snapshotErrorCooldownMs() {
+  const seconds = Number(process.env.GOOGLE_ADS_ERROR_COOLDOWN_SECONDS || 300);
+  return Math.max(60, Number.isFinite(seconds) ? seconds : 300) * 1000;
+}
+
 async function writeCachedSnapshot(key, snapshot) {
   await snapshotCacheStore().setJSON(key, {
     cachedAt: new Date().toISOString(),
@@ -229,6 +245,12 @@ export async function getCampaignSnapshot({ accessToken, customerId, campaignId,
     return { ...cached.snapshot, cached: true, liveDataAvailable: true };
   }
 
+  const cachedError = await readCachedSnapshotError(cacheKey);
+  if (!bypassCache && !cached?.snapshot && cachedError?.errorAt && Date.now() - Date.parse(cachedError.errorAt) < snapshotErrorCooldownMs()) {
+    await incrementCacheMetric('staleResponsesServed');
+    throw new Error('Google Ads read temporarily suppressed after a recent failed read.');
+  }
+
   const dateFilter = isCustom
     ? `segments.date BETWEEN '${startDate}' AND '${endDate}'`
     : `segments.date DURING ${range}`;
@@ -248,15 +270,22 @@ export async function getCampaignSnapshot({ accessToken, customerId, campaignId,
     LIMIT 1
   `;
 
-  const refresh = async () => fetchAndCacheCampaignSnapshot({
-    cacheKey,
-    accessToken,
-    customerId,
-    campaignId,
-    query,
-    fallbackName,
-    dateRange: isCustom ? 'CUSTOM_DATE' : range,
-  });
+  const refresh = async () => {
+    try {
+      return await fetchAndCacheCampaignSnapshot({
+        cacheKey,
+        accessToken,
+        customerId,
+        campaignId,
+        query,
+        fallbackName,
+        dateRange: isCustom ? 'CUSTOM_DATE' : range,
+      });
+    } catch (error) {
+      await writeCachedSnapshotError(cacheKey, error);
+      throw error;
+    }
+  };
 
   if (!bypassCache && cached?.snapshot) {
     await incrementCacheMetric('staleResponsesServed');
