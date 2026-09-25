@@ -156,7 +156,7 @@ export async function updateCachedCampaignStatus(customerId, campaignId, status)
 async function incrementCacheMetric(name, amount = 1) {
   try {
     const now = new Date().toISOString();
-    await cacheMetricEventsStore().setJSON(`${now}-${crypto.randomUUID()}.json`, {
+    await cacheMetricEventsStore().setJSON(`${Date.now()}-${crypto.randomUUID()}.json`, {
       name,
       amount,
       occurredAt: now,
