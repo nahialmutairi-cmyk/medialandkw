@@ -334,15 +334,41 @@ export async function handler(event) {
         });
       }
 
-      const before = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
-      await updateCampaignStatus({ accessToken, customerId, campaignId, status: action === 'ENABLE' ? 'ENABLED' : 'PAUSED' });
-      const after = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
       const confirmedStatus = action === 'ENABLE' ? 'ENABLED' : 'PAUSED';
-      if (after.status !== confirmedStatus) {
+      let before = null;
+      let after = null;
+
+      try {
+        before = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
+      } catch (error) {
         console.warn(JSON.stringify({
           client: config.name,
           action,
-          previousStatus: before.status,
+          stage: 'before_snapshot_unavailable',
+          timestamp: new Date().toISOString(),
+          error: error instanceof Error ? error.message : String(error),
+        }));
+      }
+
+      await updateCampaignStatus({ accessToken, customerId, campaignId, status: confirmedStatus });
+
+      try {
+        after = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
+      } catch (error) {
+        console.warn(JSON.stringify({
+          client: config.name,
+          action,
+          stage: 'after_snapshot_unavailable',
+          timestamp: new Date().toISOString(),
+          error: error instanceof Error ? error.message : String(error),
+        }));
+      }
+
+      if (after && after.status !== confirmedStatus) {
+        console.warn(JSON.stringify({
+          client: config.name,
+          action,
+          previousStatus: before?.status || 'UNKNOWN',
           newStatus: after.status,
           expectedStatus: confirmedStatus,
           timestamp: new Date().toISOString(),
@@ -372,22 +398,24 @@ export async function handler(event) {
       console.info(JSON.stringify({
         client: config.name,
         action,
-        previousStatus: before.status,
-        newStatus: after.status,
+        previousStatus: before?.status || 'UNKNOWN',
+        newStatus: after?.status || confirmedStatus,
         timestamp: new Date().toISOString(),
-        success: after.status === confirmedStatus,
+        success: after ? after.status === confirmedStatus : true,
       }));
 
       return json(200, {
         ok: true,
         connected: true,
         clientName: config.name,
-        campaignName: after.campaignName,
-        status: after.status,
-        dateRange: after.dateRange,
-        metrics: after.metrics,
+        campaignName: after?.campaignName || config.name,
+        status: after?.status || confirmedStatus,
+        dateRange: after?.dateRange || 'TODAY',
+        metrics: after?.metrics || { impressions: null, clicks: null, ctr: null, conversions: null, conversionRate: null },
+        liveDataAvailable: Boolean(after),
         lookerEmbedUrl: process.env[config.lookerEnv] || null,
         clientControlEnabled: true,
+        message: after ? undefined : 'تم تنفيذ الطلب في Google Ads. تقارير Google Ads الحية غير متاحة مؤقتاً، وتم تحديث الحالة من الأرشيف.',
       });
     }
 
