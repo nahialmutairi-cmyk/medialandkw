@@ -10,7 +10,7 @@ import {
   setMockCampaignStatus,
 } from './_shared/client-portal-activity.mjs';
 import { readServerClientConfigs, upsertDynamicClientPortal } from './_shared/client-portal-registry.mjs';
-import { getCampaignSnapshot, readGoogleAdsCacheMetrics, refreshAccessToken, updateCachedCampaignStatus, updateCampaignStatus } from './google-ads-client-portal.mjs';
+import { getCampaignSnapshot, readCampaignState, readGoogleAdsCacheMetrics, refreshAccessToken, updateCachedCampaignStatus, updateCampaignStatus } from './google-ads-client-portal.mjs';
 import { sha256 } from './_shared/client-portal-activity.mjs';
 
 function json(statusCode, body) {
@@ -60,9 +60,13 @@ async function safeSnapshot(config, accessToken, events = []) {
     }
     const customerId = process.env[config.customerIdEnv]?.replaceAll('-', '');
     const campaignId = process.env[config.campaignIdEnv];
-    if (!customerId || !campaignId || !accessToken) return { status: 'UNKNOWN', campaignName: config.name, connected: false };
+    const state = customerId && campaignId ? await readCampaignState(customerId, campaignId) : null;
+    const inferredStatus = state?.status || inferStatusFromEvents(events);
+    if (!customerId || !campaignId || !accessToken) {
+      return { status: inferredStatus, campaignName: config.name, connected: inferredStatus !== 'UNKNOWN', liveDataAvailable: false };
+    }
     const snapshot = await getCampaignSnapshot({ accessToken, customerId, campaignId, dateRange: 'TODAY', fallbackName: config.name });
-    return { status: snapshot.status, campaignName: snapshot.campaignName, connected: true, liveDataAvailable: snapshot.liveDataAvailable !== false };
+    return { status: inferredStatus, campaignName: snapshot.campaignName, connected: true, liveDataAvailable: snapshot.liveDataAvailable !== false };
   } catch {
     const inferredStatus = inferStatusFromEvents(events);
     return {
@@ -146,18 +150,21 @@ async function handleAdminAction(event) {
   if (!config.mock && (!customerId || !campaignId)) return json(503, { ok: false, message: 'Google Ads campaign is not configured.' });
 
   const accessToken = config.mock ? null : await refreshAccessToken();
+  let confirmedStatus = null;
   if (action === 'ENABLE') {
-    if (config.mock) await setMockCampaignStatus(clientSlug, 'ENABLED');
+    confirmedStatus = 'ENABLED';
+    if (config.mock) await setMockCampaignStatus(clientSlug, confirmedStatus);
     else {
-      await updateCampaignStatus({ accessToken, customerId, campaignId, status: 'ENABLED' });
-      await updateCachedCampaignStatus(customerId, campaignId, 'ENABLED');
+      await updateCampaignStatus({ accessToken, customerId, campaignId, status: confirmedStatus });
+      await updateCachedCampaignStatus(customerId, campaignId, confirmedStatus);
     }
   }
   if (action === 'PAUSE' || action === 'PAUSE_AND_LOCK') {
-    if (config.mock) await setMockCampaignStatus(clientSlug, 'PAUSED');
+    confirmedStatus = 'PAUSED';
+    if (config.mock) await setMockCampaignStatus(clientSlug, confirmedStatus);
     else {
-      await updateCampaignStatus({ accessToken, customerId, campaignId, status: 'PAUSED' });
-      await updateCachedCampaignStatus(customerId, campaignId, 'PAUSED');
+      await updateCampaignStatus({ accessToken, customerId, campaignId, status: confirmedStatus });
+      await updateCachedCampaignStatus(customerId, campaignId, confirmedStatus);
     }
   }
   if (action === 'LOCK' || action === 'PAUSE_AND_LOCK') {
@@ -182,7 +189,7 @@ async function handleAdminAction(event) {
   return json(200, {
     ok: true,
     clientSlug,
-    campaignStatus: snapshot.status,
+    campaignStatus: confirmedStatus || snapshot.status,
     campaignName: snapshot.campaignName,
     clientControlEnabled: control.clientControlEnabled,
     controlUpdatedAt: control.updatedAt,

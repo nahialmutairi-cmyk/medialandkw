@@ -82,7 +82,18 @@ export function GoogleAdsClientPortal() {
     fetch(apiUrl, { headers: { Accept: 'application/json' } })
       .then((response) => response.json())
       .then((response: PortalResponse) => {
-        if (active) setData(response);
+        if (active) {
+          setData((current) => {
+            if (response.status === 'UNKNOWN' && current?.status && current.status !== 'UNKNOWN') {
+              return {
+                ...response,
+                status: current.status,
+                clientControlEnabled: response.clientControlEnabled ?? current.clientControlEnabled,
+              };
+            }
+            return response;
+          });
+        }
       })
       .catch(() => {
         if (active) setData({ ok: false, message: 'تعذر الاتصال بخدمة بيانات الحملة.', connected: false });

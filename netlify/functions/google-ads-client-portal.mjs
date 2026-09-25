@@ -8,12 +8,17 @@ const allowedRanges = new Set(['TODAY', 'LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MON
 const actionAttempts = new Map();
 const inFlightSnapshots = new Map();
 const snapshotCacheStoreName = 'google-ads-snapshot-cache';
+const campaignStateStoreName = 'google-ads-campaign-state';
 const cacheMetricsStoreName = 'google-ads-cache-metrics';
 const cacheMetricEventsStoreName = 'google-ads-cache-metric-events';
 const cacheMetricsKey = 'counters.json';
 
 function snapshotCacheStore() {
   return getStore(snapshotCacheStoreName);
+}
+
+function campaignStateStore() {
+  return getStore(campaignStateStoreName);
 }
 
 function cacheMetricsStore() {
@@ -113,6 +118,10 @@ function snapshotCacheKey({ customerId, campaignId, range, startDate, endDate })
   return `${customerId}-${campaignId}-${hash}.json`;
 }
 
+function campaignStateKey(customerId, campaignId) {
+  return `campaign:${customerId}:${campaignId}:state.json`;
+}
+
 function snapshotCacheTtlMs() {
   const seconds = Number(process.env.GOOGLE_ADS_SNAPSHOT_CACHE_SECONDS || 300);
   return Math.max(60, Number.isFinite(seconds) ? seconds : 300) * 1000;
@@ -147,26 +156,22 @@ async function writeCachedSnapshot(key, snapshot) {
   });
 }
 
+export async function readCampaignState(customerId, campaignId) {
+  return campaignStateStore().get(campaignStateKey(customerId, campaignId), { type: 'json' });
+}
+
+export async function writeCampaignState({ customerId, campaignId, status, source = 'SERVER_CONFIRMED' }) {
+  const state = {
+    status,
+    source,
+    lastConfirmedAt: new Date().toISOString(),
+  };
+  await campaignStateStore().setJSON(campaignStateKey(customerId, campaignId), state);
+  return state;
+}
+
 export async function updateCachedCampaignStatus(customerId, campaignId, status) {
-  try {
-    const prefix = `${customerId}-${campaignId}-`;
-    const listed = await snapshotCacheStore().list({ prefix });
-    await Promise.all((listed.blobs || []).map(async (blob) => {
-      const cached = await snapshotCacheStore().get(blob.key, { type: 'json' });
-      if (!cached?.snapshot) return;
-      await snapshotCacheStore().setJSON(blob.key, {
-        ...cached,
-        cachedAt: new Date().toISOString(),
-        snapshot: {
-          ...cached.snapshot,
-          status,
-          liveDataAvailable: cached.snapshot.liveDataAvailable !== false,
-        },
-      });
-    }));
-  } catch {
-    // Cache repair must not block real Google Ads mutations.
-  }
+  await writeCampaignState({ customerId, campaignId, status, source: 'MUTATION_CONFIRMED' });
 }
 
 async function incrementCacheMetric(name, amount = 1) {
@@ -218,7 +223,6 @@ async function fetchAndCacheCampaignSnapshot({ cacheKey, accessToken, customerId
   const first = rows[0] || {};
   const snapshot = {
     campaignName: first.campaign?.name || fallbackName,
-    status: first.campaign?.status || 'UNKNOWN',
     dateRange,
     metrics: {
       impressions: Number(first.metrics?.impressions ?? 0),
@@ -258,7 +262,6 @@ export async function getCampaignSnapshot({ accessToken, customerId, campaignId,
     SELECT
       campaign.id,
       campaign.name,
-      campaign.status,
       metrics.impressions,
       metrics.clicks,
       metrics.ctr,
@@ -557,29 +560,6 @@ export async function handler(event) {
         }));
       }
 
-      if (after && !after.stale && after.status !== confirmedStatus) {
-        console.warn(JSON.stringify({
-          client: config.name,
-          action,
-          previousStatus: before?.status || 'UNKNOWN',
-          newStatus: after.status,
-          expectedStatus: confirmedStatus,
-          timestamp: new Date().toISOString(),
-          success: false,
-        }));
-        return json(502, {
-          ok: false,
-          connected: true,
-          clientName: config.name,
-          campaignName: after.campaignName,
-          status: after.status,
-          dateRange: after.dateRange,
-          metrics: after.metrics,
-          lookerEmbedUrl: process.env[config.lookerEnv] || null,
-          clientControlEnabled: true,
-          message: 'Google Ads did not confirm the requested campaign state.',
-        });
-      }
       const recorded = await recordClientActivity({
         clientSlug,
         clientName: config.name,
@@ -592,9 +572,9 @@ export async function handler(event) {
         client: config.name,
         action,
         previousStatus: before?.status || 'UNKNOWN',
-        newStatus: after?.stale ? confirmedStatus : after?.status || confirmedStatus,
+        newStatus: confirmedStatus,
         timestamp: new Date().toISOString(),
-        success: after && !after.stale ? after.status === confirmedStatus : true,
+        success: true,
       }));
 
       return json(200, {
@@ -602,7 +582,7 @@ export async function handler(event) {
         connected: true,
         clientName: config.name,
         campaignName: after?.campaignName || config.name,
-        status: after?.stale ? confirmedStatus : after?.status || confirmedStatus,
+        status: confirmedStatus,
         dateRange: after?.dateRange || 'TODAY',
         metrics: after?.metrics || { impressions: null, clicks: null, ctr: null, conversions: null, conversionRate: null },
         liveDataAvailable: after ? after.liveDataAvailable !== false : false,
@@ -614,6 +594,9 @@ export async function handler(event) {
 
     if (event.httpMethod !== 'GET') return json(405, { ok: false, message: 'Method not allowed.', connected: true });
 
+      const events = await readClientActivity(clientSlug);
+      const state = await readCampaignState(customerId, campaignId);
+      const campaignStatus = state?.status || inferStatusFromEvents(events);
       const snapshot = await getCampaignSnapshot({
         accessToken,
         customerId,
@@ -640,7 +623,7 @@ export async function handler(event) {
       connected: true,
       clientName: config.name,
       campaignName: snapshot.campaignName,
-      status: snapshot.status,
+      status: campaignStatus,
       dateRange: snapshot.dateRange,
       metrics: snapshot.metrics,
       liveDataAvailable: snapshot.liveDataAvailable !== false,
@@ -652,7 +635,15 @@ export async function handler(event) {
     if (event.httpMethod === 'GET' && isQuotaError(error)) {
       const events = await readClientActivity(clientSlug);
       const control = await readClientControl(clientSlug);
-      const inferredStatus = inferStatusFromEvents(events);
+      let inferredStatus = inferStatusFromEvents(events);
+      try {
+        const customerId = process.env[config.customerIdEnv]?.replaceAll('-', '');
+        const campaignId = process.env[config.campaignIdEnv];
+        const state = customerId && campaignId ? await readCampaignState(customerId, campaignId) : null;
+        inferredStatus = state?.status || inferredStatus;
+      } catch {
+        inferredStatus = inferStatusFromEvents(events);
+      }
       console.warn(JSON.stringify({
         client: config.name,
         timestamp: new Date().toISOString(),
