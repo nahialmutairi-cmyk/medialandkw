@@ -114,7 +114,7 @@ export async function googleAdsSearch({ accessToken, customerId, query }) {
 }
 
 function snapshotCacheKey({ customerId, campaignId, range, startDate, endDate }) {
-  const hash = sha256(JSON.stringify({ customerId, campaignId, range, startDate: startDate || null, endDate: endDate || null }));
+  const hash = sha256(JSON.stringify({ version: 2, customerId, campaignId, range, startDate: startDate || null, endDate: endDate || null }));
   return `${customerId}-${campaignId}-${hash}.json`;
 }
 
