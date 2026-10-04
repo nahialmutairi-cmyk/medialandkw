@@ -223,6 +223,7 @@ async function fetchAndCacheCampaignSnapshot({ cacheKey, accessToken, customerId
   const first = rows[0] || {};
   const snapshot = {
     campaignName: first.campaign?.name || fallbackName,
+    status: first.campaign?.status || 'UNKNOWN',
     dateRange,
     metrics: {
       impressions: Number(first.metrics?.impressions ?? 0),
@@ -262,6 +263,7 @@ export async function getCampaignSnapshot({ accessToken, customerId, campaignId,
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       metrics.impressions,
       metrics.clicks,
       metrics.ctr,
@@ -596,7 +598,7 @@ export async function handler(event) {
 
       const events = await readClientActivity(clientSlug);
       const state = await readCampaignState(customerId, campaignId);
-      const campaignStatus = state?.status || inferStatusFromEvents(events);
+      const archivedStatus = state?.status || inferStatusFromEvents(events);
       const snapshot = await getCampaignSnapshot({
         accessToken,
         customerId,
@@ -617,6 +619,7 @@ export async function handler(event) {
       });
       if (visitRecorded.event) await notifyOwnerSafely(visitRecorded.event);
       const control = await readClientControl(clientSlug);
+      const campaignStatus = snapshot.status && snapshot.status !== 'UNKNOWN' ? snapshot.status : archivedStatus;
 
     return json(200, {
       ok: true,
