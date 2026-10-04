@@ -1,8 +1,8 @@
 import { MessageCircle, Phone, Sparkles } from 'lucide-react';
 
-const phoneVisible = '65658868';
-const phoneHref = 'tel:+96565658868';
-const whatsappHref = 'https://wa.me/96565658868?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%A3%D8%B1%D8%BA%D8%A8%20%D8%A8%D8%AD%D8%AC%D8%B2%20%D8%AE%D8%AF%D9%85%D8%A9%20%D8%BA%D8%B3%D9%8A%D9%84%20%D8%B3%D9%8A%D8%A7%D8%B1%D8%A7%D8%AA.';
+const phoneVisible = '66177055';
+const phoneHref = 'tel:+96566177055';
+const whatsappHref = 'https://wa.me/96566177055?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%A3%D8%B1%D8%BA%D8%A8%20%D8%A8%D8%AD%D8%AC%D8%B2%20%D8%AE%D8%AF%D9%85%D8%A9%20%D8%BA%D8%B3%D9%8A%D9%84%20%D8%B3%D9%8A%D8%A7%D8%B1%D8%A7%D8%AA.';
 
 function trackFahad(eventName: string) {
   if (typeof window === 'undefined') return;
