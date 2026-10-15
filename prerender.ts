@@ -96,7 +96,8 @@ const staticRoutes = [
   '/privacy-policy',
   '/terms-and-conditions',
   '/terms-of-service',
-  '/cookie-policy'
+  '/cookie-policy',
+  '/alasria-tents'
 ];
 
 const serviceRoutes = siteConfig.services.map(s => `/services/${s.id}`);

@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 
 // Layout Container
 import { Layout } from './components/Layout';
@@ -33,8 +33,15 @@ import { ClientLandingPage } from './pages/ClientLandingPage';
 import { GoogleAdsClientPortal } from './pages/GoogleAdsClientPortal';
 import { AdminClientPortals } from './pages/AdminClientPortals';
 import { clientLandings } from './clientLandingData';
+import { AlasriaTents } from './pages/AlasriaTents';
 
 export function AppContent() {
+  const location = useLocation();
+
+  if (location.pathname === '/alasria-tents' || location.pathname === '/alasria-tents/') {
+    return <AlasriaTents />;
+  }
+
   return (
     <Layout>
       <Routes>

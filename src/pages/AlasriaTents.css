@@ -1,0 +1,70 @@
+.alasria-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  overflow-x: hidden;
+  padding: 24px;
+  background: #eee3d2;
+  color: #1d1813;
+  font-family: "Tajawal", Arial, sans-serif;
+}
+
+.alasria-shell {
+  width: min(100%, 540px);
+  text-align: center;
+}
+
+.alasria-label {
+  margin: 0 0 18px;
+  color: #7e654b;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.alasria-shell h1 {
+  margin: 0;
+  font-family: "Cairo", "Tajawal", Arial, sans-serif;
+  font-size: clamp(2.7rem, 12vw, 5rem);
+  line-height: 1.15;
+}
+
+.alasria-copy {
+  max-width: 430px;
+  margin: 20px auto 0;
+  color: #66594b;
+  font-size: 1.05rem;
+  line-height: 1.9;
+}
+
+.alasria-actions {
+  display: grid;
+  gap: 11px;
+  margin-top: 30px;
+}
+
+.alasria-button {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.alasria-primary { background: #1d1813; color: #fffaf3; }
+.alasria-whatsapp { background: #5b7650; color: #fff; }
+.alasria-instagram { border-color: #9c8569; color: #1d1813; }
+.alasria-button:focus-visible { outline: 3px solid #b18b60; outline-offset: 3px; }
+.alasria-contact { display: flex; justify-content: center; gap: 12px; margin-top: 22px; color: #66594b; font-size: .9rem; }
+.alasria-contact a { color: inherit; text-decoration: none; }
+
+@media (min-width: 620px) {
+  .alasria-page { padding: 48px; }
+  .alasria-actions { grid-template-columns: repeat(3, 1fr); }
+}

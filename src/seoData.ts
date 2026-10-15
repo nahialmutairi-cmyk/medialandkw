@@ -84,6 +84,18 @@ function getSeoForPathnameRaw(pathname: string): PageSEO {
     };
   }
 
+  if (path === '/alasria-tents') {
+    return {
+      pathname: '/alasria-tents',
+      title: 'خيام عصرية الكويت | تصاميم خيام عصرية',
+      description: 'خيام عصرية في الكويت، تصاميم تجمع الأناقة والجمال. للتواصل والاستفسار اتصل على 98538831 أو تابع حسابنا على إنستغرام.',
+      h1: 'خيام عصرية',
+      canonical: siteUrl + '/alasria-tents',
+      schemaType: 'LocalBusiness',
+      breadcrumbs: [{ name: 'خيام عصرية', url: siteUrl + '/alasria-tents/' }]
+    };
+  }
+
   if (path === '/portfolio') {
     return {
       pathname: '/portfolio',
