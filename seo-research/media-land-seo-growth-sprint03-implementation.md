@@ -26,7 +26,7 @@ Baseline was captured before source changes. The page-level GSC values below are
 
 Modified files:
 
-- `src/siteConfig.ts`: refined the copy, deliverables, workflow, and FAQs for Commercial Video and Content Creation; clarified Graphic Design scope without changing its title or H1.
+- `src/siteConfig.ts`: refined the copy, deliverables, workflow, and FAQs for Content Creation; clarified Graphic Design scope without changing its title or H1. Commercial Video content was already present in `main` and was not changed in Sprint 03.
 - `src/pages/ServiceDetail.tsx`: enabled the existing depth sections for Content Creation and added its related-service links. No protected service or location page was targeted.
 - This report.
 
@@ -34,7 +34,7 @@ Modified files:
 
 | Page | Before | After | Target intent |
 |---|---|---|---|
-| `/services/commercial-video/` | Title and H1 already aligned; generic service sections existed | Kept Title/H1; clarified video types, workflow, delivery formats, FAQ, and commercial CTA context | إنتاج فيديو إعلاني الكويت، تصوير إعلان تجاري الكويت، شركة إنتاج إعلانات فيديو، فيديو إعلاني للشركات |
+| `/services/commercial-video/` | Existing Title, H1, sections, FAQs, CTA, and related links already matched the approved scope in `main` | No Sprint 03 source change; verified in the PR diff and Deploy Preview | إنتاج فيديو إعلاني الكويت، تصوير إعلان تجاري الكويت، شركة إنتاج إعلانات فيديو، فيديو إعلاني للشركات |
 | `/services/content-creation/` | Title: `صناعة وإدارة المحتوى في الكويت | ميديا لاند`; H1: `صناعة محتوى إبداعي ملهم لجمهورك في الكويت`; deeper sections were not rendered | Title: `صناعة محتوى للشركات في الكويت | ميديا لاند`; H1: `صناعة محتوى للشركات والسوشيال ميديا في الكويت`; exposed existing depth sections and added a related-services map | صناعة محتوى الكويت، إنشاء محتوى للشركات، كتابة محتوى إعلاني، محتوى سوشيال ميديا الكويت |
 | `/services/graphic-design/` | Title: `تصميم إعلانات الكويت | تصميم جرافيك تجاري`; H1: `تصميم إعلانات وجرافيك تجاري في الكويت` | Title/H1 preserved; meta description and scope wording lightly clarified to avoid Branding overlap | تصميم إعلانات الكويت، جرافيك تجاري |
 
