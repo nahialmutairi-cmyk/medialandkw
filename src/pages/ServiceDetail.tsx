@@ -4,10 +4,11 @@ import { siteConfig } from '../siteConfig';
 import { getServiceIndustryPath, serviceIndustryPages } from '../serviceIndustryData';
 
 const paidAdsServiceIds = new Set(['paid-advertising', 'google-ads', 'instagram-ads', 'snapchat-ads', 'tiktok-ads']);
-const creativeGrowthServiceIds = new Set(['graphic-design', 'commercial-video', 'website-design']);
+const creativeGrowthServiceIds = new Set(['graphic-design', 'commercial-video', 'content-creation', 'website-design']);
 const creativeRelatedServiceIds: Record<string, string[]> = {
   'graphic-design': ['commercial-video', 'branding', 'content-creation', 'website-design'],
   'commercial-video': ['content-creation', 'product-photography', 'graphic-design', 'paid-advertising'],
+  'content-creation': ['commercial-video', 'graphic-design', 'social-media-management'],
   'website-design': ['ecommerce-design', 'graphic-design', 'commercial-video', 'paid-advertising']
 };
 
